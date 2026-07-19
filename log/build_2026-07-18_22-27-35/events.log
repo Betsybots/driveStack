@@ -1,0 +1,175 @@
+[0.000000] (-) TimerEvent: {}
+[0.000223] (differential-drive) JobQueued: {'identifier': 'differential-drive', 'dependencies': OrderedDict()}
+[0.000242] (differential-drive) JobStarted: {'identifier': 'differential-drive'}
+[0.003936] (differential-drive) JobProgress: {'identifier': 'differential-drive', 'progress': 'cmake'}
+[0.004246] (differential-drive) Command: {'cmd': ['/usr/bin/cmake', '/home/arun/driveStack/src/differential-drive', '-DCMAKE_INSTALL_PREFIX=/home/arun/driveStack/install/differential-drive'], 'cwd': '/home/arun/driveStack/build/differential-drive', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'arun'), ('XDG_SESSION_TYPE', 'wayland'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/home/arun/DIY-thirdparty-srcs/livox_ros_driver2/ws_livox/install/livox_ros_driver2/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/arun'), ('OLDPWD', '/home/arun/driveStack/src'), ('DESKTOP_SESSION', 'ubuntu'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('HOMEBREW_PREFIX', '/home/linuxbrew/.linuxbrew'), ('GTK_MODULES', 'gail:atk-bridge'), ('SYSTEMD_EXEC_PID', '2124'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('IM_CONFIG_PHASE', '1'), ('WAYLAND_DISPLAY', 'wayland-0'), ('COLCON_PREFIX_PATH', '/home/arun/DIY-thirdparty-srcs/livox_ros_driver2/ws_livox/install'), ('INFOPATH', '/home/linuxbrew/.linuxbrew/share/info:'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'arun'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'arun'), ('TERM', 'xterm-256color'), ('GAZEBO_MODEL_PATH', ':/opt/ros/humble/share/turtlebot3_gazebo/models'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/opt/ros/humble/bin:/home/arun/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/arun-ubuntu:@/tmp/.ICE-unix/2099,unix/arun-ubuntu:/tmp/.ICE-unix/2099'), ('HOMEBREW_CELLAR', '/home/linuxbrew/.linuxbrew/Cellar'), ('XDG_MENU_PREFIX', 'gnome-'), ('GNOME_TERMINAL_SCREEN', '/org/gnome/Terminal/screen/c0fe5559_ae89_4ed1_9934_55e8f8ba2a5d'), ('GNOME_SETUP_DISPLAY', ':1'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':0'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/.mutter-Xwaylandauth.0KCRS3'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('GNOME_TERMINAL_SERVICE', ':1.100'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/home/arun/DIY-thirdparty-srcs/livox_ros_driver2/ws_livox/install/livox_ros_driver2:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('IGN_GAZEBO_RESOURCE_PATH', ':/home/arun/DIY-Challenge-Repo/src/diy_sim/models:/home/arun/DIY-Challenge-Repo/install/diy_robot_description/share'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/arun/driveStack/build/differential-drive'), ('TURTLEBOT3_MODEL', 'waffle'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/arun/DIY-thirdparty-srcs/livox_ros_driver2/ws_livox/install/livox_ros_driver2/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('HOMEBREW_REPOSITORY', '/home/linuxbrew/.linuxbrew/Homebrew'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/home/arun/DIY-thirdparty-srcs/livox_ros_driver2/ws_livox/install/livox_ros_driver2:/opt/ros/humble')]), 'shell': False}
+[0.013232] (differential-drive) StderrLine: {'line': b'\x1b[0mCMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):\n'}
+[0.013281] (differential-drive) StderrLine: {'line': b'  Compatibility with CMake < 3.10 will be removed from a future version of\n'}
+[0.013305] (differential-drive) StderrLine: {'line': b'  CMake.\n'}
+[0.013326] (differential-drive) StderrLine: {'line': b'\n'}
+[0.013346] (differential-drive) StderrLine: {'line': b'  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax\n'}
+[0.013366] (differential-drive) StderrLine: {'line': b'  to tell CMake that the project requires at least <min> but has been updated\n'}
+[0.013387] (differential-drive) StderrLine: {'line': b'  to work with policies introduced by <max> or earlier.\n'}
+[0.013406] (differential-drive) StderrLine: {'line': b'\n'}
+[0.013423] (differential-drive) StderrLine: {'line': b'\x1b[0m\n'}
+[0.077639] (differential-drive) StdoutLine: {'line': b'-- The C compiler identification is GNU 11.4.0\n'}
+[0.099723] (-) TimerEvent: {}
+[0.121356] (differential-drive) StdoutLine: {'line': b'-- The CXX compiler identification is GNU 11.4.0\n'}
+[0.127227] (differential-drive) StdoutLine: {'line': b'-- Detecting C compiler ABI info\n'}
+[0.199865] (-) TimerEvent: {}
+[0.204367] (differential-drive) StdoutLine: {'line': b'-- Detecting C compiler ABI info - done\n'}
+[0.222432] (differential-drive) StdoutLine: {'line': b'-- Check for working C compiler: /usr/bin/cc - skipped\n'}
+[0.222563] (differential-drive) StdoutLine: {'line': b'-- Detecting C compile features\n'}
+[0.222767] (differential-drive) StdoutLine: {'line': b'-- Detecting C compile features - done\n'}
+[0.236312] (differential-drive) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info\n'}
+[0.300050] (-) TimerEvent: {}
+[0.312924] (differential-drive) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info - done\n'}
+[0.325639] (differential-drive) StdoutLine: {'line': b'-- Check for working CXX compiler: /usr/bin/c++ - skipped\n'}
+[0.326140] (differential-drive) StdoutLine: {'line': b'-- Detecting CXX compile features\n'}
+[0.326913] (differential-drive) StdoutLine: {'line': b'-- Detecting CXX compile features - done\n'}
+[0.344946] (differential-drive) StdoutLine: {'line': b'-- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)\n'}
+[0.400297] (-) TimerEvent: {}
+[0.479110] (differential-drive) StdoutLine: {'line': b'-- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter\n'}
+[0.500471] (-) TimerEvent: {}
+[0.536859] (differential-drive) StdoutLine: {'line': b'-- Found rclcpp: 16.0.19 (/opt/ros/humble/share/rclcpp/cmake)\n'}
+[0.563916] (differential-drive) StdoutLine: {'line': b'-- Found rosidl_generator_c: 3.1.8 (/opt/ros/humble/share/rosidl_generator_c/cmake)\n'}
+[0.566520] (differential-drive) StdoutLine: {'line': b'-- Found rosidl_adapter: 3.1.8 (/opt/ros/humble/share/rosidl_adapter/cmake)\n'}
+[0.570691] (differential-drive) StdoutLine: {'line': b'-- Found rosidl_generator_cpp: 3.1.8 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)\n'}
+[0.576591] (differential-drive) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[0.584522] (differential-drive) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[0.600665] (-) TimerEvent: {}
+[0.607497] (differential-drive) StdoutLine: {'line': b'-- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)\n'}
+[0.608675] (differential-drive) StdoutLine: {'line': b'-- Found rmw_fastrtps_cpp: 6.2.10 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)\n'}
+[0.671217] (differential-drive) StdoutLine: {'line': b'-- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")\n'}
+[0.696471] (differential-drive) StdoutLine: {'line': b'-- Found FastRTPS: /opt/ros/humble/include\n'}
+[0.700812] (-) TimerEvent: {}
+[0.744111] (differential-drive) StdoutLine: {'line': b"-- Using RMW implementation 'rmw_fastrtps_cpp' as default\n"}
+[0.750762] (differential-drive) StdoutLine: {'line': b'-- Performing Test CMAKE_HAVE_LIBC_PTHREAD\n'}
+[0.801025] (-) TimerEvent: {}
+[0.809219] (differential-drive) StdoutLine: {'line': b'-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success\n'}
+[0.811737] (differential-drive) StdoutLine: {'line': b'-- Found Threads: TRUE\n'}
+[0.864335] (differential-drive) StdoutLine: {'line': b'-- Found sensor_msgs: 4.9.1 (/opt/ros/humble/share/sensor_msgs/cmake)\n'}
+[0.883662] (differential-drive) StdoutLine: {'line': b'-- Found nav_msgs: 4.9.1 (/opt/ros/humble/share/nav_msgs/cmake)\n'}
+[0.893902] (differential-drive) StdoutLine: {'line': b'-- /usr/include/phoenix6 -lCTRE_Phoenix6 -lCTRE_PhoenixTools\n'}
+[0.898146] (differential-drive) StdoutLine: {'line': b'-- Found ament_lint_auto: 0.12.15 (/opt/ros/humble/share/ament_lint_auto/cmake)\n'}
+[0.901153] (-) TimerEvent: {}
+[0.947070] (differential-drive) StdoutLine: {'line': b"-- Added test 'cppcheck' to perform static code analysis on C / C++ code\n"}
+[0.947236] (differential-drive) StdoutLine: {'line': b'-- Configured cppcheck include dirs: $<BUILD_INTERFACE:/home/arun/driveStack/src/differential-drive/include>\n'}
+[0.947310] (differential-drive) StdoutLine: {'line': b'-- Configured cppcheck exclude dirs and/or files: \n'}
+[0.947712] (differential-drive) StdoutLine: {'line': b"-- Added test 'lint_cmake' to check CMake code style\n"}
+[0.948467] (differential-drive) StdoutLine: {'line': b"-- Added test 'uncrustify' to check C / C++ code style\n"}
+[0.948608] (differential-drive) StdoutLine: {'line': b'-- Configured uncrustify additional arguments: \n'}
+[0.948788] (differential-drive) StdoutLine: {'line': b"-- Added test 'xmllint' to check XML markup files\n"}
+[0.949619] (differential-drive) StdoutLine: {'line': b'-- Configuring done (0.9s)\n'}
+[0.955866] (differential-drive) StdoutLine: {'line': b'-- Generating done (0.0s)\n'}
+[0.965422] (differential-drive) StdoutLine: {'line': b'-- Build files have been written to: /home/arun/driveStack/build/differential-drive\n'}
+[0.970343] (differential-drive) CommandEnded: {'returncode': 0}
+[0.971550] (differential-drive) JobProgress: {'identifier': 'differential-drive', 'progress': 'build'}
+[0.971574] (differential-drive) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/arun/driveStack/build/differential-drive', '--', '-j32', '-l32'], 'cwd': '/home/arun/driveStack/build/differential-drive', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'arun'), ('XDG_SESSION_TYPE', 'wayland'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/home/arun/DIY-thirdparty-srcs/livox_ros_driver2/ws_livox/install/livox_ros_driver2/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/arun'), ('OLDPWD', '/home/arun/driveStack/src'), ('DESKTOP_SESSION', 'ubuntu'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('HOMEBREW_PREFIX', '/home/linuxbrew/.linuxbrew'), ('GTK_MODULES', 'gail:atk-bridge'), ('SYSTEMD_EXEC_PID', '2124'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('IM_CONFIG_PHASE', '1'), ('WAYLAND_DISPLAY', 'wayland-0'), ('COLCON_PREFIX_PATH', '/home/arun/DIY-thirdparty-srcs/livox_ros_driver2/ws_livox/install'), ('INFOPATH', '/home/linuxbrew/.linuxbrew/share/info:'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'arun'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'arun'), ('TERM', 'xterm-256color'), ('GAZEBO_MODEL_PATH', ':/opt/ros/humble/share/turtlebot3_gazebo/models'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/opt/ros/humble/bin:/home/arun/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/arun-ubuntu:@/tmp/.ICE-unix/2099,unix/arun-ubuntu:/tmp/.ICE-unix/2099'), ('HOMEBREW_CELLAR', '/home/linuxbrew/.linuxbrew/Cellar'), ('XDG_MENU_PREFIX', 'gnome-'), ('GNOME_TERMINAL_SCREEN', '/org/gnome/Terminal/screen/c0fe5559_ae89_4ed1_9934_55e8f8ba2a5d'), ('GNOME_SETUP_DISPLAY', ':1'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':0'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/.mutter-Xwaylandauth.0KCRS3'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('GNOME_TERMINAL_SERVICE', ':1.100'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/home/arun/DIY-thirdparty-srcs/livox_ros_driver2/ws_livox/install/livox_ros_driver2:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('IGN_GAZEBO_RESOURCE_PATH', ':/home/arun/DIY-Challenge-Repo/src/diy_sim/models:/home/arun/DIY-Challenge-Repo/install/diy_robot_description/share'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/arun/driveStack/build/differential-drive'), ('TURTLEBOT3_MODEL', 'waffle'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/arun/DIY-thirdparty-srcs/livox_ros_driver2/ws_livox/install/livox_ros_driver2/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('HOMEBREW_REPOSITORY', '/home/linuxbrew/.linuxbrew/Homebrew'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/home/arun/DIY-thirdparty-srcs/livox_ros_driver2/ws_livox/install/livox_ros_driver2:/opt/ros/humble')]), 'shell': False}
+[0.993862] (differential-drive) StdoutLine: {'line': b'[ 50%] \x1b[32mBuilding CXX object CMakeFiles/differential-drive.dir/src/diff-drive-main.cpp.o\x1b[0m\n'}
+[1.001372] (-) TimerEvent: {}
+[1.101847] (-) TimerEvent: {}
+[1.109971] (differential-drive) StderrLine: {'line': b'In file included from \x1b[01m\x1b[K/home/arun/driveStack/src/differential-drive/src/diff-drive-main.cpp:17\x1b[m\x1b[K:\n'}
+[1.110111] (differential-drive) StderrLine: {'line': b'\x1b[01m\x1b[K/home/arun/driveStack/src/differential-drive/include/differential-drive/pid.hpp:41:9:\x1b[m\x1b[K \x1b[01;35m\x1b[Kwarning: \x1b[m\x1b[Kmulti-line comment [\x1b[01;35m\x1b[K\x1b]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wcomment\x07-Wcomment\x1b]8;;\x07\x1b[m\x1b[K]\n'}
+[1.110162] (differential-drive) StderrLine: {'line': b'   41 |         \x1b[01;35m\x1b[K/\x1b[m\x1b[K/std::cout << "kp = " << kp << ", err = " << err \\\n'}
+[1.110216] (differential-drive) StderrLine: {'line': b'      |         \x1b[01;35m\x1b[K^\x1b[m\x1b[K\n'}
+[1.112199] (differential-drive) StderrLine: {'line': b'\x1b[01m\x1b[K/home/arun/driveStack/src/differential-drive/src/diff-drive-main.cpp:30:\x1b[m\x1b[K \x1b[01;35m\x1b[Kwarning: \x1b[m\x1b[K"M_PI" redefined\n'}
+[1.112340] (differential-drive) StderrLine: {'line': b'   30 | #define M_PI (double)3.141592\n'}
+[1.112389] (differential-drive) StderrLine: {'line': b'      | \n'}
+[1.112434] (differential-drive) StderrLine: {'line': b'In file included from \x1b[01m\x1b[K/usr/include/c++/11/cmath:45\x1b[m\x1b[K,\n'}
+[1.112484] (differential-drive) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/libstatistics_collector/libstatistics_collector/moving_average_statistics/types.hpp:18\x1b[m\x1b[K,\n'}
+[1.112529] (differential-drive) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/libstatistics_collector/libstatistics_collector/collector/generate_statistics_message.hpp:24\x1b[m\x1b[K,\n'}
+[1.112572] (differential-drive) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/topic_statistics/subscription_topic_statistics.hpp:23\x1b[m\x1b[K,\n'}
+[1.112625] (differential-drive) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/subscription.hpp:50\x1b[m\x1b[K,\n'}
+[1.112667] (differential-drive) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/any_executable.hpp:25\x1b[m\x1b[K,\n'}
+[1.112709] (differential-drive) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/memory_strategy.hpp:25\x1b[m\x1b[K,\n'}
+[1.112750] (differential-drive) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/memory_strategies.hpp:18\x1b[m\x1b[K,\n'}
+[1.112792] (differential-drive) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/executor_options.hpp:20\x1b[m\x1b[K,\n'}
+[1.112833] (differential-drive) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/executor.hpp:37\x1b[m\x1b[K,\n'}
+[1.112875] (differential-drive) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/executors/multi_threaded_executor.hpp:25\x1b[m\x1b[K,\n'}
+[1.112917] (differential-drive) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/executors.hpp:21\x1b[m\x1b[K,\n'}
+[1.112958] (differential-drive) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/rclcpp.hpp:155\x1b[m\x1b[K,\n'}
+[1.113003] (differential-drive) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/home/arun/driveStack/src/differential-drive/src/diff-drive-main.cpp:3\x1b[m\x1b[K:\n'}
+[1.113044] (differential-drive) StderrLine: {'line': b'\x1b[01m\x1b[K/usr/include/math.h:1151:\x1b[m\x1b[K \x1b[01;36m\x1b[Knote: \x1b[m\x1b[Kthis is the location of the previous definition\n'}
+[1.113086] (differential-drive) StderrLine: {'line': b' 1151 | # define M_PI           3.14159265358979323846  /* pi */\n'}
+[1.113127] (differential-drive) StderrLine: {'line': b'      | \n'}
+[1.202058] (-) TimerEvent: {}
+[1.302404] (-) TimerEvent: {}
+[1.402754] (-) TimerEvent: {}
+[1.503106] (-) TimerEvent: {}
+[1.603474] (-) TimerEvent: {}
+[1.703825] (-) TimerEvent: {}
+[1.804174] (-) TimerEvent: {}
+[1.904646] (-) TimerEvent: {}
+[2.004892] (-) TimerEvent: {}
+[2.105175] (-) TimerEvent: {}
+[2.205507] (-) TimerEvent: {}
+[2.305791] (-) TimerEvent: {}
+[2.406046] (-) TimerEvent: {}
+[2.506337] (-) TimerEvent: {}
+[2.606627] (-) TimerEvent: {}
+[2.706907] (-) TimerEvent: {}
+[2.807193] (-) TimerEvent: {}
+[2.907495] (-) TimerEvent: {}
+[3.007779] (-) TimerEvent: {}
+[3.108075] (-) TimerEvent: {}
+[3.208360] (-) TimerEvent: {}
+[3.308671] (-) TimerEvent: {}
+[3.408962] (-) TimerEvent: {}
+[3.509269] (-) TimerEvent: {}
+[3.609568] (-) TimerEvent: {}
+[3.709850] (-) TimerEvent: {}
+[3.810147] (-) TimerEvent: {}
+[3.910462] (-) TimerEvent: {}
+[4.010751] (-) TimerEvent: {}
+[4.111053] (-) TimerEvent: {}
+[4.211382] (-) TimerEvent: {}
+[4.311676] (-) TimerEvent: {}
+[4.411966] (-) TimerEvent: {}
+[4.512274] (-) TimerEvent: {}
+[4.612679] (-) TimerEvent: {}
+[4.712989] (-) TimerEvent: {}
+[4.813286] (-) TimerEvent: {}
+[4.913578] (-) TimerEvent: {}
+[5.013864] (-) TimerEvent: {}
+[5.114169] (-) TimerEvent: {}
+[5.214495] (-) TimerEvent: {}
+[5.314785] (-) TimerEvent: {}
+[5.415071] (-) TimerEvent: {}
+[5.515254] (-) TimerEvent: {}
+[5.615544] (-) TimerEvent: {}
+[5.715839] (-) TimerEvent: {}
+[5.816109] (-) TimerEvent: {}
+[5.916389] (-) TimerEvent: {}
+[6.016682] (-) TimerEvent: {}
+[6.117010] (-) TimerEvent: {}
+[6.207344] (differential-drive) StdoutLine: {'line': b'[100%] \x1b[1m\x1b[32mLinking CXX executable differential-drive\x1b[0m\n'}
+[6.217170] (-) TimerEvent: {}
+[6.317421] (-) TimerEvent: {}
+[6.417717] (-) TimerEvent: {}
+[6.431993] (differential-drive) StdoutLine: {'line': b'[100%] Built target differential-drive\n'}
+[6.436258] (differential-drive) CommandEnded: {'returncode': 0}
+[6.436885] (differential-drive) JobProgress: {'identifier': 'differential-drive', 'progress': 'install'}
+[6.440042] (differential-drive) Command: {'cmd': ['/usr/bin/cmake', '--install', '/home/arun/driveStack/build/differential-drive'], 'cwd': '/home/arun/driveStack/build/differential-drive', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'arun'), ('XDG_SESSION_TYPE', 'wayland'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/home/arun/DIY-thirdparty-srcs/livox_ros_driver2/ws_livox/install/livox_ros_driver2/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/arun'), ('OLDPWD', '/home/arun/driveStack/src'), ('DESKTOP_SESSION', 'ubuntu'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('HOMEBREW_PREFIX', '/home/linuxbrew/.linuxbrew'), ('GTK_MODULES', 'gail:atk-bridge'), ('SYSTEMD_EXEC_PID', '2124'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('IM_CONFIG_PHASE', '1'), ('WAYLAND_DISPLAY', 'wayland-0'), ('COLCON_PREFIX_PATH', '/home/arun/DIY-thirdparty-srcs/livox_ros_driver2/ws_livox/install'), ('INFOPATH', '/home/linuxbrew/.linuxbrew/share/info:'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'arun'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'arun'), ('TERM', 'xterm-256color'), ('GAZEBO_MODEL_PATH', ':/opt/ros/humble/share/turtlebot3_gazebo/models'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/opt/ros/humble/bin:/home/arun/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/arun-ubuntu:@/tmp/.ICE-unix/2099,unix/arun-ubuntu:/tmp/.ICE-unix/2099'), ('HOMEBREW_CELLAR', '/home/linuxbrew/.linuxbrew/Cellar'), ('XDG_MENU_PREFIX', 'gnome-'), ('GNOME_TERMINAL_SCREEN', '/org/gnome/Terminal/screen/c0fe5559_ae89_4ed1_9934_55e8f8ba2a5d'), ('GNOME_SETUP_DISPLAY', ':1'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':0'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/.mutter-Xwaylandauth.0KCRS3'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('GNOME_TERMINAL_SERVICE', ':1.100'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/home/arun/DIY-thirdparty-srcs/livox_ros_driver2/ws_livox/install/livox_ros_driver2:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('IGN_GAZEBO_RESOURCE_PATH', ':/home/arun/DIY-Challenge-Repo/src/diy_sim/models:/home/arun/DIY-Challenge-Repo/install/diy_robot_description/share'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/arun/driveStack/build/differential-drive'), ('TURTLEBOT3_MODEL', 'waffle'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/arun/DIY-thirdparty-srcs/livox_ros_driver2/ws_livox/install/livox_ros_driver2/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('HOMEBREW_REPOSITORY', '/home/linuxbrew/.linuxbrew/Homebrew'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/home/arun/DIY-thirdparty-srcs/livox_ros_driver2/ws_livox/install/livox_ros_driver2:/opt/ros/humble')]), 'shell': False}
+[6.442752] (differential-drive) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[6.442815] (differential-drive) StdoutLine: {'line': b'-- Installing: /home/arun/driveStack/install/differential-drive/lib/differential-drive/differential-drive\n'}
+[6.445776] (differential-drive) StdoutLine: {'line': b'-- Set non-toolchain portion of runtime path of "/home/arun/driveStack/install/differential-drive/lib/differential-drive/differential-drive" to "/usr/lib/phoenix6:/opt/ros/humble/lib"\n'}
+[6.445890] (differential-drive) StdoutLine: {'line': b'-- Installing: /home/arun/driveStack/install/differential-drive/share/ament_index/resource_index/package_run_dependencies/differential-drive\n'}
+[6.446024] (differential-drive) StdoutLine: {'line': b'-- Installing: /home/arun/driveStack/install/differential-drive/share/ament_index/resource_index/parent_prefix_path/differential-drive\n'}
+[6.446160] (differential-drive) StdoutLine: {'line': b'-- Installing: /home/arun/driveStack/install/differential-drive/share/differential-drive/environment/ament_prefix_path.sh\n'}
+[6.446484] (differential-drive) StdoutLine: {'line': b'-- Installing: /home/arun/driveStack/install/differential-drive/share/differential-drive/environment/ament_prefix_path.dsv\n'}
+[6.446570] (differential-drive) StdoutLine: {'line': b'-- Installing: /home/arun/driveStack/install/differential-drive/share/differential-drive/environment/path.sh\n'}
+[6.446601] (differential-drive) StdoutLine: {'line': b'-- Installing: /home/arun/driveStack/install/differential-drive/share/differential-drive/environment/path.dsv\n'}
+[6.446630] (differential-drive) StdoutLine: {'line': b'-- Installing: /home/arun/driveStack/install/differential-drive/share/differential-drive/local_setup.bash\n'}
+[6.446656] (differential-drive) StdoutLine: {'line': b'-- Installing: /home/arun/driveStack/install/differential-drive/share/differential-drive/local_setup.sh\n'}
+[6.446682] (differential-drive) StdoutLine: {'line': b'-- Installing: /home/arun/driveStack/install/differential-drive/share/differential-drive/local_setup.zsh\n'}
+[6.446722] (differential-drive) StdoutLine: {'line': b'-- Installing: /home/arun/driveStack/install/differential-drive/share/differential-drive/local_setup.dsv\n'}
+[6.446746] (differential-drive) StdoutLine: {'line': b'-- Installing: /home/arun/driveStack/install/differential-drive/share/differential-drive/package.dsv\n'}
+[6.446771] (differential-drive) StdoutLine: {'line': b'-- Installing: /home/arun/driveStack/install/differential-drive/share/ament_index/resource_index/packages/differential-drive\n'}
+[6.446795] (differential-drive) StdoutLine: {'line': b'-- Installing: /home/arun/driveStack/install/differential-drive/share/differential-drive/cmake/ament_cmake_export_dependencies-extras.cmake\n'}
+[6.446847] (differential-drive) StdoutLine: {'line': b'-- Installing: /home/arun/driveStack/install/differential-drive/share/differential-drive/cmake/differential-driveConfig.cmake\n'}
+[6.446884] (differential-drive) StdoutLine: {'line': b'-- Installing: /home/arun/driveStack/install/differential-drive/share/differential-drive/cmake/differential-driveConfig-version.cmake\n'}
+[6.446909] (differential-drive) StdoutLine: {'line': b'-- Installing: /home/arun/driveStack/install/differential-drive/share/differential-drive/package.xml\n'}
+[6.447949] (differential-drive) CommandEnded: {'returncode': 0}
+[6.463280] (differential-drive) JobEnded: {'identifier': 'differential-drive', 'rc': 0}
+[6.463918] (-) EventReactorShutdown: {}

@@ -1,0 +1,4 @@
+source;share/differential-drive/local_setup.bash
+source;share/differential-drive/local_setup.dsv
+source;share/differential-drive/local_setup.sh
+source;share/differential-drive/local_setup.zsh
