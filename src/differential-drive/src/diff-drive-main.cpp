@@ -191,6 +191,7 @@ private:
 #endif
     }
     
+#if 0
     void PublishMessages()
     {
         
@@ -205,7 +206,8 @@ private:
         nav_msg.twist.twist.angular.z = (float)(right_wheel_speed_meas - left_wheel_speed_meas) * WHEEL_DIAMETER/(float)(2.0 * WHEEL_DISTANCE);
         motor_odom_publisher_->publish(nav_msg);
     }
-    
+#endif
+
     void calculate_and_publish_Odometry()
     {
         // Calculate Odometry based on wheel speeds and publish
