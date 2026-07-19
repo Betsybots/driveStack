@@ -1,7 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/home/arun/driveStack/build/differential-drive/cmake_install.cmake"
-	],
-	"Parallel" : false
-}

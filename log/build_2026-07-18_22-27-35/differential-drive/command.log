@@ -1,6 +1,0 @@
-Invoking command in '/home/arun/driveStack/build/differential-drive': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/arun/driveStack/src/differential-drive -DCMAKE_INSTALL_PREFIX=/home/arun/driveStack/install/differential-drive
-Invoked command in '/home/arun/driveStack/build/differential-drive' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/arun/driveStack/src/differential-drive -DCMAKE_INSTALL_PREFIX=/home/arun/driveStack/install/differential-drive
-Invoking command in '/home/arun/driveStack/build/differential-drive': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/arun/driveStack/build/differential-drive -- -j32 -l32
-Invoked command in '/home/arun/driveStack/build/differential-drive' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/arun/driveStack/build/differential-drive -- -j32 -l32
-Invoking command in '/home/arun/driveStack/build/differential-drive': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/arun/driveStack/build/differential-drive
-Invoked command in '/home/arun/driveStack/build/differential-drive' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/arun/driveStack/build/differential-drive
