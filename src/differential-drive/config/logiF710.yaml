@@ -1,0 +1,45 @@
+# teleop_twist_joy configuration for a Logitech F710 gamepad (D-mode / DirectInput,
+# i.e. the D/X switch on the back of the controller set to "D").
+#
+# NOTE: Logitech F710 button/axis numbering (as read via the Linux joystick driver
+# and exposed on /joy) is NOT the same as the Xbox controller layout used by
+# teleop_twist_joy's stock xbox.config.yaml. Verify against your own unit with:
+#   ros2 topic echo /joy
+# and adjust the indices below if they don't match.
+#
+# Standard Logitech F710 (D-mode) layout:
+#   Axes:    0 = left stick L/R   (left: 1.0, right: -1.0)
+#            1 = left stick U/D   (up: 1.0, down: -1.0)
+#            2 = left trigger LT  (released: 1.0, pressed: -1.0)
+#            3 = right stick L/R
+#            4 = right stick U/D
+#            5 = right trigger RT (released: 1.0, pressed: -1.0)
+#            6 = D-pad L/R
+#            7 = D-pad U/D
+#   Buttons: 0 = A       4 = LB    8 = Logitech/Guide
+#            1 = B       5 = RB    9 = Left stick click (L3)
+#            2 = X       6 = Back  10 = Right stick click (R3)
+#            3 = Y       7 = Start
+
+teleop_twist_joy_node:
+  ros__parameters:
+    # Left stick vertical -> forward/backward
+    axis_linear:
+      x: 4
+    scale_linear:
+      x: 0.5
+    scale_linear_turbo:
+      x: 0.7
+
+    # Right stick horizontal -> turn left/right
+    axis_angular:
+      yaw: 3
+    scale_angular:
+      yaw: 0.5
+    scale_angular_turbo:
+      yaw: 1.0
+
+    # Deadman switch: hold LB to drive, hold RB for turbo scaling
+    require_enable_button: true
+    enable_button: 5          # RB
+    enable_turbo_button: 4    # LB
