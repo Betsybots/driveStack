@@ -17,7 +17,7 @@ using namespace std::chrono_literals;
 using namespace ctre::phoenix6;
 #endif
 
-#define WHEEL_DISTANCE (double)0.339725
+#define WHEEL_DISTANCE (double)0.33655
 #define WHEEL_DIAMETER (double)0.1524 //0.1905
 #define GEAR_RATIO (double)0.2 //0.3
 // M_PI is provided by <cmath> (glibc) at full double precision; no local override needed.
@@ -73,11 +73,11 @@ public:
         fx_cfg.MotorOutput.NeutralMode = signals::NeutralModeValue::Coast;
 
         // the left motor is CCW+
-        fx_cfg.MotorOutput.Inverted = signals::InvertedValue::CounterClockwise_Positive;
+        fx_cfg.MotorOutput.Inverted = signals::InvertedValue::Clockwise_Positive;
         leftMotor.GetConfigurator().Apply(fx_cfg);
         
         // the right motor is CW+
-        fx_cfg.MotorOutput.Inverted = signals::InvertedValue::Clockwise_Positive;
+        fx_cfg.MotorOutput.Inverted = signals::InvertedValue::CounterClockwise_Positive;
         rightMotor.GetConfigurator().Apply(fx_cfg);
         
         // robot init, set slot 0 gains
@@ -113,7 +113,7 @@ public:
         last_cmd_time_ = this->now();
 
         cmd_vel_subscription_ = this->create_subscription<geometry_msgs::msg::Twist>(
-        "/cmd_vel", 5, std::bind(&DifferentialDrive::cmd_vel_callback, this, std::placeholders::_1));
+        "/motor_cmd_vel", 5, std::bind(&DifferentialDrive::cmd_vel_callback, this, std::placeholders::_1));
 
         motor_speed_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("/diff_drive/motor_speeds", 10);
         motor_odom_publisher_ = this->create_publisher<nav_msgs::msg::Odometry>("/wheel_odom", 20);
