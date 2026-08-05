@@ -79,7 +79,12 @@ public:
         // the right motor is CW+
         fx_cfg.MotorOutput.Inverted = signals::InvertedValue::CounterClockwise_Positive;
         rightMotor.GetConfigurator().Apply(fx_cfg);
-        
+
+        RCLCPP_INFO(this->get_logger(),
+            "Motor current limits (left & right): stator = %.1f A, supply = %.1f A",
+            fx_cfg.CurrentLimits.StatorCurrentLimit.value(),
+            fx_cfg.CurrentLimits.SupplyCurrentLimit.value());
+
         // robot init, set slot 0 gains
         configs::Slot0Configs slot0Configs{};
         slot0Configs.kV = 0.12;
