@@ -19,7 +19,7 @@ def generate_launch_description():
             package='teleop_twist_joy',
             executable='teleop_node',
             name='teleop_twist_joy_node',
-            remappings=[('/cmd_vel', '/cmd_vel')],
+            remappings=[('/cmd_vel', '/motor_cmd_vel')],
             parameters=[{
                 'axis_linear.x': 4,
                 'scale_linear.x': 0.75,

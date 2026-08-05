@@ -72,6 +72,14 @@ public:
         configs::TalonFXConfiguration fx_cfg{};
         fx_cfg.MotorOutput.NeutralMode = signals::NeutralModeValue::Coast;
 
+        // enable stator current limit (applied identically to both motors below)
+        //fx_cfg.CurrentLimits.StatorCurrentLimitEnable = true;
+        //fx_cfg.CurrentLimits.StatorCurrentLimit = 40_A;
+
+        // enable stator current limit (applied identically to both motors below)
+        //fx_cfg.CurrentLimits.SupplyCurrentLimitEnable = true;
+        //fx_cfg.CurrentLimits.SupplyCurrentLimit = 20_A;
+
         // the left motor is CCW+
         fx_cfg.MotorOutput.Inverted = signals::InvertedValue::Clockwise_Positive;
         leftMotor.GetConfigurator().Apply(fx_cfg);
@@ -187,16 +195,16 @@ private:
     void setMotorSpeeds()
     {
 #if ENABLE_MOTORS
-        if(new_cmd_received)
-        {
-            //RCLCPP_INFO(this->get_logger(), "Setting Motor Speeds: Left = %f, Right = %f", cmd_left_speed, cmd_right_speed);
+        //if(new_cmd_received)
+        //{
+            RCLCPP_INFO(this->get_logger(), "Setting Motor Speeds: Left = %f, Right = %f", cmd_left_speed, cmd_right_speed);
             // Set Motor Speeds
             left_velocity.WithVelocity(units::angular_velocity::turns_per_second_t{cmd_left_speed});
             right_velocity.WithVelocity(units::angular_velocity::turns_per_second_t{cmd_right_speed});
             leftMotor.SetControl(left_velocity);
             rightMotor.SetControl(right_velocity);
             new_cmd_received = false;
-        }
+        //}
 #endif
     }
 

@@ -28,7 +28,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'cmd_topic',
-            default_value='/cmd_vel',
+            default_value='/motor_cmd_vel',
             description='Twist command output topic',
         ),
         Node(
