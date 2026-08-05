@@ -28,7 +28,7 @@ constexpr double ENCODER_MAX_TURNS = 16383.999755859375;
 constexpr double ENCODER_WRAP_RANGE_TURNS = ENCODER_MAX_TURNS - ENCODER_MIN_TURNS;
 
 // If no /cmd_vel message is received within this window, motors are commanded to stop.
-constexpr auto CMD_VEL_TIMEOUT = 300ms;
+constexpr auto CMD_VEL_TIMEOUT = 1000ms;
 
 // Maximum commanded robot linear velocity, in m/s. TUNE to your robot's safe operating limit.
 constexpr double MAX_LINEAR_VELOCITY_MPS = 1.9;
@@ -159,7 +159,7 @@ private:
         last_cmd_time_ = this->now();
         cmd_vel_timeout_triggered_ = false;
         new_cmd_received = true;
-        RCLCPP_INFO(this->get_logger(), "Left_speed = %f right_speed = %f", cmd_left_speed, cmd_right_speed);
+        //RCLCPP_INFO(this->get_logger(), "Left_speed = %f right_speed = %f", cmd_left_speed, cmd_right_speed);
     }
 
     // Stops the motors if no /cmd_vel message has been received within CMD_VEL_TIMEOUT.
@@ -184,7 +184,7 @@ private:
 #if ENABLE_MOTORS
         if(new_cmd_received)
         {
-            RCLCPP_INFO(this->get_logger(), "Setting Motor Speeds: Left = %f, Right = %f", cmd_left_speed, cmd_right_speed);
+            //RCLCPP_INFO(this->get_logger(), "Setting Motor Speeds: Left = %f, Right = %f", cmd_left_speed, cmd_right_speed);
             // Set Motor Speeds
             left_velocity.WithVelocity(units::angular_velocity::turns_per_second_t{cmd_left_speed});
             right_velocity.WithVelocity(units::angular_velocity::turns_per_second_t{cmd_right_speed});
