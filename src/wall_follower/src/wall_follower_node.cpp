@@ -181,7 +181,6 @@ private:
 
     publishFilteredPointcloud(msg, filtered_points);
 
-    
     geometry_msgs::msg::Twist cmd = computePidCmdVel(left_min, right_min);
 
     cmd_vel_pub_->publish(cmd);
@@ -189,8 +188,8 @@ private:
     RCLCPP_INFO(
       this->get_logger(),
       "Side distances [left, right]=[%.3f, %.3f] -> cmd_vel [vx=%.3f, wz=%.3f]",
-      left_valid ? left_min : -1.0F,
-      right_valid ? right_min : -1.0F,
+      std::isfinite(left_min) ? left_min : -1.0F,
+      std::isfinite(right_min) ? right_min : -1.0F,
       cmd.linear.x,
       cmd.angular.z);
   }
