@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <filesystem>
@@ -25,6 +26,18 @@ double yaw_from_quaternion(const geometry_msgs::msg::Quaternion & q)
   const double cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
   return std::atan2(siny_cosp, cosy_cosp);
 }
+
+double compute_speed_scale(double progress_ratio, double ramp_ratio, double min_scale)
+{
+  progress_ratio = std::clamp(progress_ratio, 0.0, 1.0);
+  ramp_ratio = std::clamp(ramp_ratio, 1e-3, 0.5);
+  min_scale = std::clamp(min_scale, 0.0, 1.0);
+
+  const double ramp_up_scale = progress_ratio / ramp_ratio;
+  const double ramp_down_scale = (1.0 - progress_ratio) / ramp_ratio;
+  const double scale = std::min(1.0, std::min(ramp_up_scale, ramp_down_scale));
+  return std::max(min_scale, scale);
+}
 #define inches2meters(inches) ((inches) * 0.0254)
 #define deg2rad(degrees) ((degrees) * M_PI / 180.0)
 
@@ -39,6 +52,8 @@ public:
     plan_file_ = this->declare_parameter<std::string>("plan_file", "");
     pose_topic_ = this->declare_parameter<std::string>("pose_topic", "/odometry/filtered");
     cmd_topic_ = this->declare_parameter<std::string>("cmd_topic", "/cmd_vel_nav");
+    ramp_ratio_ = this->declare_parameter<double>("ramp_ratio", 0.2);
+    min_speed_scale_ = this->declare_parameter<double>("min_speed_scale", 0.2);
 
     if (plan_file_.empty()) {
       RCLCPP_FATAL(this->get_logger(), "Parameter 'plan_file' is required.");
@@ -205,7 +220,13 @@ private:
         return;
       }
 
-      const double speed = std::copysign(std::abs(cmd.speed), cmd.target);
+      const double progress_ratio = (target_distance > 1e-6) ? (traveled / target_distance) : 1.0;
+      const double speed_scale = compute_speed_scale(progress_ratio, ramp_ratio_, min_speed_scale_);
+      const double speed = std::copysign(std::abs(cmd.speed) * speed_scale, cmd.target);
+      RCLCPP_INFO(
+        this->get_logger(),
+        "Traveled=%.3f target=%.3f progress=%.3f speed_scale=%.3f, speed=%.3f",
+        traveled, target_distance, progress_ratio, speed_scale, speed);
       twist.linear.x = speed;
       twist.angular.z = 0.0;
     } else {
@@ -220,7 +241,9 @@ private:
         return;
       }
 
-      const double speed = std::copysign(std::abs(cmd.speed), cmd.target);
+      const double progress_ratio = (target_angle > 1e-6) ? (turned / target_angle) : 1.0;
+      const double speed_scale = compute_speed_scale(progress_ratio, ramp_ratio_, min_speed_scale_);
+      const double speed = std::copysign(std::abs(cmd.speed) * speed_scale, cmd.target);
       twist.linear.x = 0.0;
       twist.angular.z = speed;
     }
@@ -245,6 +268,8 @@ private:
   std::string plan_file_;
   std::string pose_topic_;
   std::string cmd_topic_;
+  double ramp_ratio_{0.2};
+  double min_speed_scale_{0.2};
 
   std::vector<Command> commands_;
 

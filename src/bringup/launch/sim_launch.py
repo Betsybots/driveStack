@@ -160,6 +160,17 @@ def generate_launch_description():
             description='Use simulation (Gazebo) clock if true'
         ),
         Node(
+            package='wall_follower',
+            executable='motion_plan_executor_node',
+            name='motion_plan_executor',
+            output='screen',
+            parameters=[{
+                'plan_file': plan_file,
+                'pose_topic': pose_topic,
+                'cmd_topic': cmd_topic,
+            }],
+        ),
+        Node(
             package='ros_gz_bridge',
             executable='parameter_bridge',
             arguments=[

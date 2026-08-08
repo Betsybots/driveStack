@@ -1,0 +1,15 @@
+twist_mux:
+  ros__parameters:
+    topics:
+      # High priority (e.g., Emergency stops)
+      joystick:
+        topic: twist_cmd_vel
+        priority: 100
+        timeout: 1.0
+      
+      # Medium priority (e.g., Autonomous navigation)
+      navigation:
+        topic: wall_cmd_vel
+        priority: 50
+        timeout: 0.5
+

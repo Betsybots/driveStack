@@ -12,9 +12,12 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(PCL REQUIRED)
 
 add_executable(wall_follower_node src/wall_follower_node.cpp)
-ament_target_dependencies(wall_follower_node rclcpp sensor_msgs geometry_msgs)
+ament_target_dependencies(wall_follower_node rclcpp sensor_msgs geometry_msgs std_msgs pcl_conversions PCL)
 
 install(TARGETS wall_follower_node
   DESTINATION lib/${PROJECT_NAME}

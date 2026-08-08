@@ -32,7 +32,7 @@ def generate_launch_description():
             description='Twist command output topic',
         ),
         Node(
-            package='plan_b',
+            package='basic_motion_planner',
             executable='motion_plan_executor_node',
             name='motion_plan_executor',
             output='screen',
