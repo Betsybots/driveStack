@@ -149,11 +149,12 @@ private:
     float left_min = std::numeric_limits<float>::infinity();
     float right_min = std::numeric_limits<float>::infinity();
 
-    sensor_msgs::PointCloud2ConstIterator<float> iter_x(*msg, "x");
-    sensor_msgs::PointCloud2ConstIterator<float> iter_y(*msg, "y");
-    sensor_msgs::PointCloud2ConstIterator<float> iter_z(*msg, "z");
-    sensor_msgs::PointCloud2ConstIterator<float> iter_intensity(*msg, "intensity");
-    sensor_msgs::PointCloud2ConstIterator<float> iter_ring(*msg, "ring");
+    sensor_msgs::msg::PointCloud2::SharedPtr downsampled_msg = downsampling(msg);
+    sensor_msgs::PointCloud2ConstIterator<float> iter_x(*downsampled_msg, "x");
+    sensor_msgs::PointCloud2ConstIterator<float> iter_y(*downsampled_msg, "y");
+    sensor_msgs::PointCloud2ConstIterator<float> iter_z(*downsampled_msg, "z");
+    sensor_msgs::PointCloud2ConstIterator<float> iter_intensity(*downsampled_msg, "intensity");
+    sensor_msgs::PointCloud2ConstIterator<float> iter_ring(*downsampled_msg, "ring");
 
 
     // Buffer of points that survive ground-plane (z_min_) and max-height (z_max_) filtering.
@@ -232,8 +233,7 @@ private:
       ++out_ring;
     }
 
-    filtered_pointcloud_ = downsampling(cloud);
-    filtered_pointcloud_pub_->publish(*filtered_pointcloud_);
+    filtered_pointcloud_pub_->publish(*cloud);
   }
 
   sensor_msgs::msg::PointCloud2::SharedPtr downsampling(const sensor_msgs::msg::PointCloud2::SharedPtr & input_msg) {
@@ -275,7 +275,6 @@ private:
   double integral_error_ {0.0};
   double prev_error_ {0.0};
   rclcpp::Time prev_time_;
-  sensor_msgs::msg::PointCloud2::SharedPtr filtered_pointcloud_;
 
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr pointcloud_sub_;
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
