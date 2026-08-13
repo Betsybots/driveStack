@@ -15,6 +15,12 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/filters/voxel_grid.h>
 
+
+static double deg2rad(const double deg)
+{
+  return deg * M_PI / 180.0;
+}
+
 class WallFollower : public rclcpp::Node
 {
 public:
@@ -36,10 +42,30 @@ public:
     z_max_ = this->declare_parameter<double>("z_max", 0.2);
     filtered_pointcloud_topic_ = this->declare_parameter<std::string>(
       "filtered_pointcloud_topic", "/wall_follower/filtered_points");
+    left_wall_edge_topic_ = this->declare_parameter<std::string>(
+      "left_wall_edge_topic", "/wall_follower/left_wall_edge");
+    right_wall_edge_topic_ = this->declare_parameter<std::string>(
+      "right_wall_edge_topic", "/wall_follower/right_wall_edge");
+    edge_bin_size_rad_ = this->declare_parameter<double>("edge_bin_size_deg", 2.0) * M_PI / 180.0;
+    front_half_angle_deg_ = this->declare_parameter<double>("front_half_angle_deg", 20.0);
+    controller_type_ = this->declare_parameter<std::string>("controller_type", "mpc");
+    mpc_horizon_steps_ = this->declare_parameter<int>("mpc_horizon_steps", 15);
+    mpc_dt_ = this->declare_parameter<double>("mpc_dt", 0.15);
+    mpc_omega_candidates_ = this->declare_parameter<int>("mpc_omega_candidates", 21);
+    mpc_weight_lateral_ = this->declare_parameter<double>("mpc_weight_lateral", 4.0);
+    mpc_weight_heading_ = this->declare_parameter<double>("mpc_weight_heading", 1.0);
+    mpc_weight_control_ = this->declare_parameter<double>("mpc_weight_control", 0.05);
+    mpc_weight_control_rate_ = this->declare_parameter<double>("mpc_weight_control_rate", 0.1);
+    mpc_weight_collision_ = this->declare_parameter<double>("mpc_weight_collision", 50.0);
+    mpc_safety_margin_m_ = this->declare_parameter<double>("mpc_safety_margin_m", 0.3);
 
     cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>(cmd_vel_topic_, 10);
     filtered_pointcloud_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(
       filtered_pointcloud_topic_, rclcpp::QoS(10));
+    left_wall_edge_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(
+      left_wall_edge_topic_, rclcpp::QoS(10));
+    right_wall_edge_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(
+      right_wall_edge_topic_, rclcpp::QoS(10));
 
     pointcloud_sub_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
       pointcloud_topic_,
@@ -62,13 +88,6 @@ public:
   rclcpp::TimerBase::SharedPtr wall_timer_;
 
 private:
-  static constexpr double kPi = 3.14159265358979323846;
-  static constexpr double kHalfPi = 1.57079632679489661923;
-
-  static double deg2rad(const double deg)
-  {
-    return deg * kPi / 180.0;
-  }
 
   static bool inAngleWindow(const double angle, const double center, const double half_width)
   {
@@ -124,7 +143,8 @@ private:
     return cmd;
   }
 
-  void  computeLeftandRightMin(const float x, const float y, float & left_min, float & right_min)
+  void computeSectorMins(
+    const float x, const float y, float & left_min, float & right_min, float & front_min)
   {
     const float range = std::hypot(x, y);
     if (range < min_valid_range_m_ || range > max_valid_range_m_) {
@@ -133,21 +153,97 @@ private:
 
     const double angle = std::atan2(y, x);
     const double side_half_angle = deg2rad(side_half_angle_deg_);
+    const double front_half_angle = deg2rad(front_half_angle_deg_);
 
-    if (inAngleWindow(angle, kHalfPi, side_half_angle)) {
+    if (inAngleWindow(angle, M_PI_2, side_half_angle)) {
       left_min = std::min(left_min, range);
     }
-    if (inAngleWindow(angle, -kHalfPi, side_half_angle)) {
+    if (inAngleWindow(angle, -M_PI_2, side_half_angle)) {
       right_min = std::min(right_min, range);
     }
+    if (inAngleWindow(angle, 0.0, front_half_angle)) {
+      front_min = std::min(front_min, range);
+    }
+  }
+
+  // Receding-horizon controller: shoots candidate constant angular velocities through a
+  // cross-track/heading error model derived from the filtered cloud's left/right/front
+  // distances, and applies the first control of the lowest-cost candidate.
+  geometry_msgs::msg::Twist computeMpcCmdVel(
+    const float left_distance, const float right_distance, const float front_distance)
+  {
+    geometry_msgs::msg::Twist cmd;
+
+    const bool left_valid = std::isfinite(left_distance);
+    const bool right_valid = std::isfinite(right_distance);
+    if (!(left_valid && right_valid)) {
+      prev_mpc_omega_ = 0.0;
+      cmd.linear.x = 0.0;
+      cmd.angular.z = 0.0;
+      RCLCPP_WARN_THROTTLE(
+        this->get_logger(),
+        *this->get_clock(),
+        2000,
+        "Missing side wall points (left_valid=%d, right_valid=%d); stopping robot",
+        left_valid,
+        right_valid);
+      return cmd;
+    }
+
+    const double e0 = static_cast<double>(left_distance - right_distance);
+    const double v = linear_velocity_mps_;
+    const double dt = mpc_dt_;
+    const int horizon = std::max(1, mpc_horizon_steps_);
+    const int n_candidates = std::max(3, mpc_omega_candidates_);
+
+    double best_omega = 0.0;
+    double best_cost = std::numeric_limits<double>::infinity();
+
+    for (int i = 0; i < n_candidates; ++i) {
+      const double t = (2.0 * i) / (n_candidates - 1) - 1.0;
+      const double omega = t * max_angular_velocity_rps_;
+
+      double e = e0;
+      double theta = 0.0;
+      double x = 0.0;
+      double cost = 0.0;
+
+      for (int k = 0; k < horizon; ++k) {
+        theta += omega * dt;
+        e -= v * std::sin(theta) * dt;
+        x += v * std::cos(theta) * dt;
+
+        cost += mpc_weight_lateral_ * e * e + mpc_weight_heading_ * theta * theta;
+
+        if (std::isfinite(front_distance)) {
+          const double margin = (front_distance - mpc_safety_margin_m_) - x;
+          if (margin < 0.0) {
+            cost += mpc_weight_collision_ * margin * margin;
+          }
+        }
+      }
+
+      cost += mpc_weight_control_ * omega * omega;
+      cost += mpc_weight_control_rate_ * (omega - prev_mpc_omega_) * (omega - prev_mpc_omega_);
+
+      if (cost < best_cost) {
+        best_cost = cost;
+        best_omega = omega;
+      }
+    }
+
+    prev_mpc_omega_ = best_omega;
+
+    cmd.linear.x = linear_velocity_mps_;
+    cmd.angular.z = std::clamp(best_omega, -max_angular_velocity_rps_, max_angular_velocity_rps_);
+    return cmd;
   }
 
   void pointcloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
   {
-    const double side_half_angle = deg2rad(side_half_angle_deg_);
-
     float left_min = std::numeric_limits<float>::infinity();
     float right_min = std::numeric_limits<float>::infinity();
+    float front_min = std::numeric_limits<float>::infinity();
 
     sensor_msgs::msg::PointCloud2::SharedPtr downsampled_msg = downsampling(msg);
     sensor_msgs::PointCloud2ConstIterator<float> iter_x(*downsampled_msg, "x");
@@ -177,12 +273,21 @@ private:
 
       filtered_points.push_back({x, y, z, intensity, ring});
 
-      computeLeftandRightMin(x, y, left_min, right_min);
+      computeSectorMins(x, y, left_min, right_min, front_min);
     }
 
-    publishFilteredPointcloud(msg, filtered_points);
+    publishPointCloud(msg, filtered_points, filtered_pointcloud_pub_);
 
-    geometry_msgs::msg::Twist cmd = computePidCmdVel(left_min, right_min);
+    std::vector<std::array<float, 5>> left_edge_points;
+    std::vector<std::array<float, 5>> right_edge_points;
+    computeWallBottomEdge(filtered_points, M_PI_2, deg2rad(side_half_angle_deg_), left_edge_points);
+    computeWallBottomEdge(filtered_points, -M_PI_2, deg2rad(side_half_angle_deg_), right_edge_points);
+    publishPointCloud(msg, left_edge_points, left_wall_edge_pub_);
+    publishPointCloud(msg, right_edge_points, right_wall_edge_pub_);
+
+    geometry_msgs::msg::Twist cmd = (controller_type_ == "pid")
+      ? computePidCmdVel(left_min, right_min)
+      : computeMpcCmdVel(left_min, right_min, front_min);
 
     cmd_vel_pub_->publish(cmd);
 
@@ -195,9 +300,95 @@ private:
       cmd.angular.z);
   }
 
-  void publishFilteredPointcloud(
+  // Buckets a side's points into angular bins and keeps each bin's lowest-z point, tracing
+  // the line where the wall meets the floor.
+  void computeWallBottomEdge(
+    const std::vector<std::array<float, 5>> & points,
+    const double center_angle,
+    const double half_angle,
+    std::vector<std::array<float, 5>> & edge_points)
+  {
+    const double bin_size = edge_bin_size_rad_;
+    const int num_bins = std::max(1, static_cast<int>(std::ceil((2.0 * half_angle) / bin_size)));
+    std::vector<bool> bin_has_point(num_bins, false);
+    std::vector<std::array<float, 5>> bin_min_z(num_bins);
+
+    for (const auto & point : points) {
+      const float x = point[0];
+      const float y = point[1];
+      const float range = std::hypot(x, y);
+      if (range < min_valid_range_m_ || range > max_valid_range_m_) {
+        continue;
+      }
+
+      const double angle = std::atan2(y, x);
+      const double diff = std::atan2(std::sin(angle - center_angle), std::cos(angle - center_angle));
+      if (std::fabs(diff) > half_angle) {
+        continue;
+      }
+
+      int bin = static_cast<int>((diff + half_angle) / bin_size);
+      bin = std::clamp(bin, 0, num_bins - 1);
+      if (!bin_has_point[bin] || point[2] < bin_min_z[bin][2]) {
+        bin_min_z[bin] = point;
+        bin_has_point[bin] = true;
+      }
+    }
+
+    edge_points.clear();
+    for (int i = 0; i < num_bins; ++i) {
+      if (bin_has_point[i]) {
+        edge_points.push_back(bin_min_z[i]);
+      }
+    }
+  }
+
+  void computeBottomEdge(const std::vector<std::array<float, 5>> & points, 
+    double center_angle, double half_angle, std::vector<std::array<float, 5>> & edge_points)
+  {
+    edge_points.clear();
+    std::unordered_map<float, std::array<float, 5>> bin_map;
+    for (double i = 0; i < std::fabs(half_angle); i += edge_bin_size_rad_) {
+      auto bin_min_angle = center_angle + (half_angle > 0.0 ? i : -i);
+      auto bin_max_angle = center_angle + (half_angle > 0.0 ? i + edge_bin_size_rad_ : -i - edge_bin_size_rad_);
+      auto bin_key = (bin_min_angle + bin_max_angle) / 2.0;
+      bin_map[bin_key] = {std::numeric_limits<float>::infinity(), 0.0, 0.0, 0.0, 0.0};
+    }
+
+    for (const auto & point : points) {
+      if (point[2] < z_min_ || point[2] > z_max_) {
+        continue;
+      }
+      auto x = point[0];
+      auto y = point[1];
+      auto angle = std::atan2(y, x);
+      auto diff = std::atan2(std::sin(angle - center_angle), std::cos(angle - center_angle));
+      if (std::fabs(diff) > std::fabs(half_angle)) {
+        continue;
+      }
+
+      if (std::hypot(x, y) < min_valid_range_m_ || std::hypot(x, y) > max_valid_range_m_) {
+        continue;
+      }
+      if (half_angle > 0.0 && diff < 0.0) {
+        continue;
+      }
+      if (half_angle < 0.0 && diff > 0.0) {
+        continue;
+      }
+
+      auto bin_index = static_cast<int>((diff + std::fabs(half_angle)) / edge_bin_size_rad_);
+      auto bin_key = center_angle + (half_angle > 0.0 ? bin_index * edge_bin_size_rad_ : -bin_index * edge_bin_size_rad_);
+      auto & bin_point = bin_map[bin_key];
+      auto range = std::hypot(x, y);
+
+      edge_points.push_back(point);
+    }
+  }
+  void publishPointCloud(
     const sensor_msgs::msg::PointCloud2::SharedPtr & msg,
-    const std::vector<std::array<float, 5>> & points)
+    const std::vector<std::array<float, 5>> & points,
+    const rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr & publisher)
   {
     auto cloud = std::make_shared<sensor_msgs::msg::PointCloud2>();
     cloud->header = msg->header;
@@ -233,7 +424,7 @@ private:
       ++out_ring;
     }
 
-    filtered_pointcloud_pub_->publish(*cloud);
+    publisher->publish(*cloud);
   }
 
   sensor_msgs::msg::PointCloud2::SharedPtr downsampling(const sensor_msgs::msg::PointCloud2::SharedPtr & input_msg) {
@@ -247,7 +438,7 @@ private:
       sor.setInputCloud(cloud_blob);
       
       // Set voxel leaf size (x, y, z in meters)
-      sor.setLeafSize(0.05f, 0.05f, 0.05f); 
+      sor.setLeafSize(0.05f, 0.05f, 0.05f);  // 5 cm voxel grid
       sor.filter(*cloud_filtered_blob);
   
       // 3. Convert back to ROS message
@@ -261,7 +452,12 @@ private:
   std::string pointcloud_topic_;
   std::string cmd_vel_topic_;
   std::string filtered_pointcloud_topic_;
+  std::string left_wall_edge_topic_;
+  std::string right_wall_edge_topic_;
+  std::string controller_type_;
   double side_half_angle_deg_;
+  double front_half_angle_deg_;
+  double edge_bin_size_rad_;
   double min_valid_range_m_;
   double max_valid_range_m_;
   double z_min_; // Minimum z would be below the robot base, so we can filter out ground points.
@@ -276,9 +472,22 @@ private:
   double prev_error_ {0.0};
   rclcpp::Time prev_time_;
 
+  int mpc_horizon_steps_;
+  int mpc_omega_candidates_;
+  double mpc_dt_;
+  double mpc_weight_lateral_;
+  double mpc_weight_heading_;
+  double mpc_weight_control_;
+  double mpc_weight_control_rate_;
+  double mpc_weight_collision_;
+  double mpc_safety_margin_m_;
+  double prev_mpc_omega_ {0.0};
+
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr pointcloud_sub_;
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr filtered_pointcloud_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr left_wall_edge_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr right_wall_edge_pub_;
 };
 
 int main(int argc, char ** argv)
