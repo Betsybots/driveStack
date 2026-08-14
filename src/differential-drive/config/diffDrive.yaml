@@ -2,27 +2,28 @@
   ros__parameters:
     canbus_name: "can0"
     left_motor_id: 1
-    right_motor_id: 2
+    right_motor_id: 3
 
     wheel_distance: 0.273812
     wheel_diameter: 0.1524
-    gear_ratio: 1.0
+    gear_ratio: 0.2
 
     stator_current_limit: 40.0
     supply_current_limit: 20.0
     neutral_mode: "coast"
-    left_motor_inverted: false
+    left_motor_inverted: true
     right_motor_inverted: true
 
-    velocity_k_v: 0.12
-    velocity_k_p: 0.11
-    velocity_k_i: 0.52
-    velocity_k_d: 0.01
+    velocity_k_v: 0.115 #0.0054
+    velocity_k_p: 0.15 #0.012
+    velocity_k_i: 0.0
+    velocity_k_d: 0.0
+    velocity_k_s: 0.39 #0.0185
     velocity_acceleration: 0.2
 
     max_linear_velocity: 10.0
     max_angular_velocity: 20.0
-    invert_angular_velocity: true
+    invert_angular_velocity: false
     cmd_vel_timeout_ms: 1000
     update_period_ms: 10
 

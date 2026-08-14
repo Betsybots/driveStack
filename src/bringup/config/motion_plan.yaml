@@ -1,6 +1,6 @@
 motions:
   - type: STRAIGHT
-    distance: 0.5
+    distance: 2.0
     linear_velocity: 0.5
 
   - type: TURN
@@ -8,24 +8,24 @@ motions:
     angular_velocity: 0.5
 
   - type: TURN
-    angle: -90
+    angle: 90
     angular_velocity: 0.6
 
-  # - type: STRAIGHT
-  #   distance: -1.5
-  #   linear_velocity: 0.5
+  - type: STRAIGHT
+    distance: 2.0
+    linear_velocity: 0.5
 
-  # - type: TURN
-  #   angle: -90
-  #   angular_velocity: 0.6
+  - type: TURN
+    angle: 90
+    angular_velocity: 0.6
 
   # - type: STRAIGHT
   #   distance: 1.0
   #   linear_velocity: 0.5
 
-  # - type: TURN
-  #   angle: 90
-  #   angular_velocity: 0.6
+  - type: TURN
+    angle: 90
+    angular_velocity: 0.6
 
   # - type: STRAIGHT
   #   distance: 1.0

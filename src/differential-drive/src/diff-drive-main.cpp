@@ -62,10 +62,11 @@ public:
         velocity_k_p_ = this->declare_parameter<double>("velocity_k_p", 0.11);
         velocity_k_i_ = this->declare_parameter<double>("velocity_k_i", 0.52);
         velocity_k_d_ = this->declare_parameter<double>("velocity_k_d", 0.01);
+	    velocity_k_s_ = this->declare_parameter<double>("velocity_k_s", 0.00);
         velocity_acceleration_ = this->declare_parameter<double>("velocity_acceleration", 0.2);
         max_linear_velocity_ = this->declare_parameter<double>("max_linear_velocity", 10.0);
         max_angular_velocity_ = this->declare_parameter<double>("max_angular_velocity", 20.0);
-        invert_angular_velocity_ = this->declare_parameter<bool>("invert_angular_velocity", true);
+        invert_angular_velocity_ = this->declare_parameter<bool>("invert_angular_velocity", false);
         cmd_vel_timeout_ms_ = this->declare_parameter<int>("cmd_vel_timeout_ms", 1000);
         update_period_ms_ = this->declare_parameter<int>("update_period_ms", 10);
         cmd_vel_topic_ = this->declare_parameter<std::string>("cmd_vel_topic", "/cmd_vel");
@@ -140,6 +141,7 @@ public:
         slot0Configs.kP = velocity_k_p_;
         slot0Configs.kI = velocity_k_i_;
         slot0Configs.kD = velocity_k_d_;
+	    slot0Configs.kS = velocity_k_s_;
         fx_cfg.Slot0 = slot0Configs;
         
         leftMotor->GetConfigurator().Apply(slot0Configs, 50_ms);
@@ -212,6 +214,7 @@ private:
             return;
         }
 
+        RCLCPP_INFO(this->get_logger(), "Command Linear Velocity = %f Angular Velocity = %f", cmd->linear.x, cmd->angular.z);
         const double linear_x = std::clamp(cmd->linear.x, -max_linear_velocity_, max_linear_velocity_);
         const double angular_direction = invert_angular_velocity_ ? -1.0 : 1.0;
         const double angular_z = std::clamp(
@@ -253,8 +256,13 @@ private:
             // Set Motor Speeds
             left_velocity.WithVelocity(units::angular_velocity::turns_per_second_t{cmd_left_speed});
             right_velocity.WithVelocity(units::angular_velocity::turns_per_second_t{cmd_right_speed});
-            leftMotor->SetControl(left_velocity);
+            //leftOut.WithOutput(0.1);
+	    //rightOut.WithOutput(0.1);
+	    //leftMotor->SetControl(leftOut);
+	    //rightMotor->SetControl(rightOut);
+	    leftMotor->SetControl(left_velocity);
             rightMotor->SetControl(right_velocity);
+            //RCLCPP_INFO(this->get_logger(), "Setting Motor Speeds: Left = %f, Right = %f", leftMotor->GetV, cmd_right_speed);
             new_cmd_received = false;
         //}
 #endif
@@ -364,6 +372,7 @@ private:
     double velocity_k_p_;
     double velocity_k_i_;
     double velocity_k_d_;
+    double velocity_k_s_;
     double velocity_acceleration_;
     double max_linear_velocity_;
     double max_angular_velocity_;

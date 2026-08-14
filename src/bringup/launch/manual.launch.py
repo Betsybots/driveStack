@@ -2,7 +2,8 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
@@ -18,8 +19,44 @@ def generate_launch_description():
 
     ekf_config_file_arg = DeclareLaunchArgument(
         'ekf_config_file',
-        default_value=os.path.join(pkg_dir, 'config', 'ekf_custom.yaml'),
-        description='Path to robot_localization EKF YAML config file'
+        default_value=os.path.join(pkg_dir, 'config', 'localization_ekf.yaml'),
+        description='Path to localization EKF YAML config file'
+    )
+
+    use_ekf_arg = DeclareLaunchArgument(
+        'use_ekf',
+        default_value='true',
+        description='Fuse localization sensors with robot_localization EKF'
+    )
+
+    with_lidar_arg = DeclareLaunchArgument(
+        'with_lidar',
+        default_value='false',
+        description='Include LiDAR odometry; automatically true when use_ekf is false'
+    )
+
+    wheel_odom_topic_arg = DeclareLaunchArgument(
+        'wheel_odom_topic',
+        default_value='/wheel_odom',
+        description='Wheel odometry topic'
+    )
+
+    imu_topic_arg = DeclareLaunchArgument(
+        'imu_topic',
+        default_value='/imu/data',
+        description='IMU topic'
+    )
+
+    lidar_odom_topic_arg = DeclareLaunchArgument(
+        'lidar_odom_topic',
+        default_value='/Odometry',
+        description='LiDAR odometry topic'
+    )
+
+    output_topic_arg = DeclareLaunchArgument(
+        'output_topic',
+        default_value='/FinalOdometry',
+        description='Localization odometry output topic'
     )
 
     joy_config_file_arg = DeclareLaunchArgument(
@@ -59,21 +96,34 @@ def generate_launch_description():
             ]
     )
 
-    ekf_node = Node(
-            package='robot_localization',
-            executable='ekf_node',
-            name='ekf_filter_node',
-            output='screen',
-            parameters=[LaunchConfiguration('ekf_config_file')]
-        )
+    localization_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_dir, 'launch', 'localization.launch.py')
+        ),
+        launch_arguments={
+            'use_ekf': LaunchConfiguration('use_ekf'),
+            'with_lidar': LaunchConfiguration('with_lidar'),
+            'ekf_config_file': LaunchConfiguration('ekf_config_file'),
+            'wheel_odom_topic': LaunchConfiguration('wheel_odom_topic'),
+            'imu_topic': LaunchConfiguration('imu_topic'),
+            'lidar_odom_topic': LaunchConfiguration('lidar_odom_topic'),
+            'output_topic': LaunchConfiguration('output_topic'),
+        }.items()
+    )
 
 
     return LaunchDescription([
         config_file_arg,
         ekf_config_file_arg,
+        use_ekf_arg,
+        with_lidar_arg,
+        wheel_odom_topic_arg,
+        imu_topic_arg,
+        lidar_odom_topic_arg,
+        output_topic_arg,
         joy_config_file_arg,
         joy_node,
         joy_teleop_node,
         diff_drive_node,
-        ekf_node,
+        localization_launch,
     ])
