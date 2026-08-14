@@ -27,15 +27,15 @@ teleop_twist_joy_node:
     axis_linear:
       x: 4
     scale_linear:
-      x: 0.5
+      x: 5.0
     scale_linear_turbo:
-      x: 0.7
-
+      x: 0.75
+ 
     # Right stick horizontal -> turn left/right
     axis_angular:
       yaw: 3
     scale_angular:
-      yaw: 0.5
+      yaw: 5.0
     scale_angular_turbo:
       yaw: 1.0
 
@@ -43,3 +43,4 @@ teleop_twist_joy_node:
     require_enable_button: true
     enable_button: 5          # RB
     enable_turbo_button: 4    # LB
+

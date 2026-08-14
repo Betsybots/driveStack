@@ -17,6 +17,10 @@
   <depend>phoenix6</depend>
   <depend>robot_localization</depend>
   <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>joy</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>teleop_twist_joy</exec_depend>
   <!--<depend>SDL2<depend> -->
 
   <test_depend>ament_lint_auto</test_depend>

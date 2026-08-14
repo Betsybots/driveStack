@@ -1,0 +1,43 @@
+/**:
+  ros__parameters:
+    canbus_name: "can0"
+    left_motor_id: 1
+    right_motor_id: 2
+
+    wheel_distance: 0.273812
+    wheel_diameter: 0.1524
+    gear_ratio: 1.5
+
+    stator_current_limit: 40.0
+    supply_current_limit: 20.0
+    neutral_mode: "coast"
+    left_motor_inverted: false
+    right_motor_inverted: true
+
+    velocity_k_v: 0.12
+    velocity_k_p: 0.11
+    velocity_k_i: 0.52
+    velocity_k_d: 0.01
+    velocity_acceleration: 0.2
+
+    max_linear_velocity: 10.0
+    max_angular_velocity: 20.0
+    invert_angular_velocity: true
+    cmd_vel_timeout_ms: 1000
+    update_period_ms: 10
+
+    cmd_vel_topic: "/joy_cmd_vel"
+    motor_speeds_topic: "/diff_drive/motor_speeds"
+    wheel_odom_topic: "/wheel_odom"
+    joint_states_topic: "/joint_states"
+    odom_frame_id: "odom"
+    base_frame_id: "base_footprint"
+    left_joint_name: "drivewhl_l_joint"
+    right_joint_name: "drivewhl_r_joint"
+
+    pose_covariance_xy: 0.001
+    pose_covariance_z_roll_pitch: 0.000001
+    pose_covariance_yaw: 0.001
+    twist_covariance_vx: 0.001
+    twist_covariance_vy_vz_roll_pitch: 0.000001
+    twist_covariance_yaw_rate: 0.001
