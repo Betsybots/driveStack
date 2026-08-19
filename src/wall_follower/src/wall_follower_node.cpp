@@ -14,6 +14,8 @@
 #include "std_msgs/msg/header.hpp"
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/filters/voxel_grid.h>
+#include <Eigen/Dense>
+#include <mppi/instantiations/diffdrive_mppi/diffdrive_mppi.cuh>
 
 
 static double deg2rad(const double deg)
@@ -95,6 +97,26 @@ private:
     return std::fabs(diff) <= half_width;
   }
   
+  //Fits a polynomial of specified degree to the given points
+  Eigen::VectorXd fitPolynomial(const std::vector<std::array<float, 5>> & points, const int degree)
+  {
+      Eigen::MatrixXd A(points.size(), degree + 1);
+      Eigen::VectorXd b(points.size());
+
+      for (size_t i = 0; i < points.size(); ++i) {
+          const float x = points[i][0];
+          const float y = points[i][1];
+          for (int j = 0; j <= degree; ++j) {
+              A(i, j) = std::pow(x, j);
+          }
+          b(i) = y;
+      }
+
+      // Solve for coefficients using least squares
+      Eigen::VectorXd coeffs = A.colPivHouseholderQr().solve(b);
+      return coeffs;
+  }
+
   void timerCallback()
   {
     // This callback is intentionally left empty. It serves as a placeholder to keep the node alive.
@@ -280,8 +302,8 @@ private:
 
     std::vector<std::array<float, 5>> left_edge_points;
     std::vector<std::array<float, 5>> right_edge_points;
-    computeWallBottomEdge(filtered_points, M_PI_2, deg2rad(side_half_angle_deg_), left_edge_points);
-    computeWallBottomEdge(filtered_points, -M_PI_2, deg2rad(side_half_angle_deg_), right_edge_points);
+    computeWallBottomEdge(filtered_points, "left", M_PI_2, deg2rad(side_half_angle_deg_), left_edge_points);
+    computeWallBottomEdge(filtered_points, "right", -M_PI_2, deg2rad(side_half_angle_deg_), right_edge_points);
     publishPointCloud(msg, left_edge_points, left_wall_edge_pub_);
     publishPointCloud(msg, right_edge_points, right_wall_edge_pub_);
 
@@ -304,12 +326,14 @@ private:
   // the line where the wall meets the floor.
   void computeWallBottomEdge(
     const std::vector<std::array<float, 5>> & points,
+    std::string side,
     const double center_angle,
     const double half_angle,
-    std::vector<std::array<float, 5>> & edge_points)
+    std::vector<std::array<float, 5>> & poly_points)
   {
     const double bin_size = edge_bin_size_rad_;
-    const int num_bins = std::max(1, static_cast<int>(std::ceil((2.0 * half_angle) / bin_size)));
+    const int num_bins = M_PI_2 / bin_size;
+    // const int num_bins = std::max(1, static_cast<int>(std::ceil((2.0 * half_angle) / bin_size)));
     std::vector<bool> bin_has_point(num_bins, false);
     std::vector<std::array<float, 5>> bin_min_z(num_bins);
 
@@ -322,24 +346,47 @@ private:
       }
 
       const double angle = std::atan2(y, x);
-      const double diff = std::atan2(std::sin(angle - center_angle), std::cos(angle - center_angle));
-      if (std::fabs(diff) > half_angle) {
+      if ((side == "left" && (angle < 0.0 || angle > M_PI_2)) || 
+         (side == "right" && (angle > 0.0 || angle < -M_PI_2))) {
         continue;
       }
+      
+      int bin = std::clamp(static_cast<int>(std::ceil(std::fabs(angle) / bin_size)), 0, num_bins - 1);
+      //const double diff = std::atan2(std::sin(angle - center_angle), std::cos(angle - center_angle));
+      //if (std::fabs(diff) > half_angle) {
+      //  continue;
+      //}
 
-      int bin = static_cast<int>((diff + half_angle) / bin_size);
-      bin = std::clamp(bin, 0, num_bins - 1);
       if (!bin_has_point[bin] || point[2] < bin_min_z[bin][2]) {
         bin_min_z[bin] = point;
         bin_has_point[bin] = true;
       }
     }
 
+    auto avg_z = std::accumulate(
+      bin_min_z.begin(), bin_min_z.end(), 0.0,
+      [&bin_has_point, &bin_min_z](double sum, const std::array<float, 5> & point) {
+        return sum + (bin_has_point[&point - &bin_min_z[0]] ? point[2] : 0.0);
+      });
+    avg_z /= std::count(bin_has_point.begin(), bin_has_point.end(), true);
+    std::vector<std::array<float, 5>> edge_points;
     edge_points.clear();
     for (int i = 0; i < num_bins; ++i) {
       if (bin_has_point[i]) {
         edge_points.push_back(bin_min_z[i]);
       }
+    }
+    int degree = 3;
+    Eigen::VectorXd coeffs = fitPolynomial(edge_points, degree);
+    for (auto & point : edge_points) {
+      float x = point[0];
+      float y = 0.0;
+      for (int j = 0; j <= degree; ++j) {
+        y += coeffs[j] * std::pow(x, j);
+      }
+      point[1] = y;
+      point[2] = avg_z;  // Set z to average z of the edge points
+      poly_points.push_back(point);
     }
   }
 
@@ -363,17 +410,13 @@ private:
       auto y = point[1];
       auto angle = std::atan2(y, x);
       auto diff = std::atan2(std::sin(angle - center_angle), std::cos(angle - center_angle));
-      if (std::fabs(diff) > std::fabs(half_angle)) {
+      
+      if ((half_angle > 0.0 && (diff < half_angle || diff < 0.0)) || 
+         (half_angle < 0.0 && (diff > half_angle || diff > 0.0))) {
         continue;
       }
 
       if (std::hypot(x, y) < min_valid_range_m_ || std::hypot(x, y) > max_valid_range_m_) {
-        continue;
-      }
-      if (half_angle > 0.0 && diff < 0.0) {
-        continue;
-      }
-      if (half_angle < 0.0 && diff > 0.0) {
         continue;
       }
 

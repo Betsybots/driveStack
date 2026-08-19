@@ -15,10 +15,15 @@ find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(PCL REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(CUDA REQUIRED)
 
 add_executable(wall_follower_node src/wall_follower_node.cpp)
 ament_target_dependencies(wall_follower_node rclcpp sensor_msgs geometry_msgs std_msgs pcl_conversions PCL)
-
+target_include_directories(wall_follower_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  /usr/local/cuda-13.3/include)
 install(TARGETS wall_follower_node
   DESTINATION lib/${PROJECT_NAME}
 )
