@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/arun/MPPI-Generic/build/cmake_install.cmake",
+		"/home/arun/MPPI-Generic/build/submodules/cnpy/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

@@ -1,0 +1,20 @@
+[
+{
+  "directory": "/home/arun/MPPI-Generic/build/submodules/cnpy",
+  "command": "/usr/bin/c++ -Dcnpy_EXPORTS   -Wuninitialized -Wall -Wno-unused-variable -Wno-unused-but-set-variable -O3 -DNDEBUG -std=gnu++17 -fPIC -o CMakeFiles/cnpy.dir/cnpy.cpp.o -c /home/arun/MPPI-Generic/submodules/cnpy/cnpy.cpp",
+  "file": "/home/arun/MPPI-Generic/submodules/cnpy/cnpy.cpp",
+  "output": "submodules/cnpy/CMakeFiles/cnpy.dir/cnpy.cpp.o"
+},
+{
+  "directory": "/home/arun/MPPI-Generic/build/submodules/cnpy",
+  "command": "/usr/bin/c++    -Wuninitialized -Wall -Wno-unused-variable -Wno-unused-but-set-variable -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles/cnpy-static.dir/cnpy.cpp.o -c /home/arun/MPPI-Generic/submodules/cnpy/cnpy.cpp",
+  "file": "/home/arun/MPPI-Generic/submodules/cnpy/cnpy.cpp",
+  "output": "submodules/cnpy/CMakeFiles/cnpy-static.dir/cnpy.cpp.o"
+},
+{
+  "directory": "/home/arun/MPPI-Generic/build/submodules/cnpy",
+  "command": "/usr/bin/c++    -Wuninitialized -Wall -Wno-unused-variable -Wno-unused-but-set-variable -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles/example1.dir/example1.cpp.o -c /home/arun/MPPI-Generic/submodules/cnpy/example1.cpp",
+  "file": "/home/arun/MPPI-Generic/submodules/cnpy/example1.cpp",
+  "output": "submodules/cnpy/CMakeFiles/example1.dir/example1.cpp.o"
+}
+]

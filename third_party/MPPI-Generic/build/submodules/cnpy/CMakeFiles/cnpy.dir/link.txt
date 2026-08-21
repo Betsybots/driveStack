@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC  -Wuninitialized -Wall -Wno-unused-variable -Wno-unused-but-set-variable -O3 -DNDEBUG -shared -Wl,-soname,libcnpy.so -o ../../lib/libcnpy.so CMakeFiles/cnpy.dir/cnpy.cpp.o  /usr/lib/x86_64-linux-gnu/libz.so
