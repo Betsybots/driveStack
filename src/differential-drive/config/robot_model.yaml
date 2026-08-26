@@ -1,0 +1,19 @@
+differential_drive:
+  ros__parameters:
+    cmd_vel_timeout: 0.5
+    robot_model: "differential_drive"
+    differential_drive:
+      wheel_distance: 10.78 // inches
+      wheel_diameter: 6 // inches
+      gear_ratio: 1.0
+      max_linear_velocity: 5.0 // meters per second
+      max_angular_velocity: 10.0 // radians per second
+      PID:
+        P: 0.11
+        I: 0.52
+        D: 0.01
+        S: 0.0
+        V: 0.12
+        A: 0.0
+
+      

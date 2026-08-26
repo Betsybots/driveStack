@@ -17,9 +17,6 @@ using namespace std::chrono_literals;
 using namespace ctre::phoenix6;
 #endif
 
-#define WHEEL_DISTANCE (double)0.33655
-#define WHEEL_DIAMETER (double)0.1524 //0.1905
-#define GEAR_RATIO (double)0.2 //0.3
 // M_PI is provided by <cmath> (glibc) at full double precision; no local override needed.
 
 constexpr char const *CANBUS_NAME = "can0";
@@ -67,25 +64,54 @@ public:
 
     DifferentialDrive() : Node("differential_drive")
     {
+        this->declare_parameter<string>("robot_model", "differential_drive");
+        this->declare_parameter<float>("differential_drive.wheel_distance", 10.78);
+        this->declare_parameter<float>("differential_drive.wheel_diameter", 6.0);
+        this->declare_parameter<float>("differential_drive.gear_ratio", 1.0);
+        this->declare_parameter<float>("differential_drive.max_linear_velocity", 5.0);
+        this->declare_parameter<float>("differential_drive.max_angular_velocity", 10.0);
+        this->declare_parameter<float>("differential_drive.PID.P", 0.11);
+        this->declare_parameter<float>("differential_drive.PID.I", 0.52);
+        this->declare_parameter<float>("differential_drive.PID.D", 0.01);
+        this->declare_parameter<float>("differential_drive.PID.S", 0.0);
+        this->declare_parameter<float>("differential_drive.PID.V", 0.12);
+        this->declare_parameter<float>("differential_drive.PID.A", 0.0);
+
+        this->get_parameter_or<float>("differential_drive.wheel_distance", wheel_distance, 10.78);
+        this->get_parameter_or<float>("differential_drive.wheel_diameter", wheel_diameter, 6.0);
+        this->get_parameter_or<float>("differential_drive.gear_ratio", gear_ratio, 1.0);
+        this->get_parameter_or<float>("differential_drive.max_linear_velocity", max_linear_velocity, 5.0);
+        this->get_parameter_or<float>("differential_drive.max_angular_velocity", max_angular_velocity, 10.0);
+        this->get_parameter_or<float>("differential_drive.PID.P", pid_p, 0.11);
+        this->get_parameter_or<float>("differential_drive.PID.I", pid_i, 0.52);
+        this->get_parameter_or<float>("differential_drive.PID.D", pid_d, 0.01);
+        this->get_parameter_or<float>("differential_drive.PID.S", pid_s, 0.0);
+        this->get_parameter_or<float>("differential_drive.PID.V", pid_v, 0.12);
+        this->get_parameter_or<float>("differential_drive.PID.A", pid_a, 0.0);
+        this->get_parameter_or<string>("robot_model", robot_model, "differential_drive");
+        wheel_distance *= 0.0254; // convert inches to meters
+        wheel_diameter *= 0.0254; // convert inches to meters and get radius
+
+        
 #if ENABLE_MOTORS
         // Motor Config settings
         configs::TalonFXConfiguration fx_cfg{};
-        fx_cfg.MotorOutput.NeutralMode = signals::NeutralModeValue::Coast;
+        fx_cfg.MotorOutput.NeutralMode = signals::NeutralModeValue::Brake;
 
         // enable stator current limit (applied identically to both motors below)
-        //fx_cfg.CurrentLimits.StatorCurrentLimitEnable = true;
-        //fx_cfg.CurrentLimits.StatorCurrentLimit = 40_A;
+        fx_cfg.CurrentLimits.StatorCurrentLimitEnable = true;
+        fx_cfg.CurrentLimits.StatorCurrentLimit = 40_A;
 
         // enable stator current limit (applied identically to both motors below)
-        //fx_cfg.CurrentLimits.SupplyCurrentLimitEnable = true;
-        //fx_cfg.CurrentLimits.SupplyCurrentLimit = 20_A;
+        fx_cfg.CurrentLimits.SupplyCurrentLimitEnable = true;
+        fx_cfg.CurrentLimits.SupplyCurrentLimit = 20_A;
 
         // the left motor is CCW+
-        fx_cfg.MotorOutput.Inverted = signals::InvertedValue::Clockwise_Positive;
+        fx_cfg.MotorOutput.Inverted = signals::InvertedValue::CounterClockwise_Positive;
         leftMotor.GetConfigurator().Apply(fx_cfg);
         
         // the right motor is CW+
-        fx_cfg.MotorOutput.Inverted = signals::InvertedValue::CounterClockwise_Positive;
+        fx_cfg.MotorOutput.Inverted = signals::InvertedValue::Clockwise_Positive;
         rightMotor.GetConfigurator().Apply(fx_cfg);
 
         RCLCPP_INFO(this->get_logger(),
@@ -95,10 +121,12 @@ public:
 
         // robot init, set slot 0 gains
         configs::Slot0Configs slot0Configs{};
-        slot0Configs.kV = 0.12;
-        slot0Configs.kP = 0.11;
-        slot0Configs.kI = 0.52;
-        slot0Configs.kD = 0.01;
+        slot0Configs.kP = pid_p;
+        slot0Configs.kI = pid_i;
+        slot0Configs.kD = pid_d;
+        slot0Configs.kS = pid_s;
+        slot0Configs.kV = pid_v;
+        slot0Configs.kA = pid_a;
         fx_cfg.Slot0 = slot0Configs;
         
         leftMotor.GetConfigurator().Apply(slot0Configs, 50_ms);
@@ -165,10 +193,10 @@ private:
 
     void cmd_vel_callback(geometry_msgs::msg::Twist::SharedPtr cmd)
     {
-        const double linear_x = std::clamp(cmd->linear.x, -MAX_LINEAR_VELOCITY_MPS, MAX_LINEAR_VELOCITY_MPS);
-        const double angular_z = std::clamp(cmd->angular.z, -MAX_ANGULAR_VELOCITY_RADPS, MAX_ANGULAR_VELOCITY_RADPS);
-        cmd_left_speed = (2.0 * linear_x - WHEEL_DISTANCE * angular_z)/(double)(2.0 * M_PI * WHEEL_DIAMETER * GEAR_RATIO);
-        cmd_right_speed = (2.0 * linear_x + WHEEL_DISTANCE * angular_z)/(double)(2.0 * M_PI * WHEEL_DIAMETER * GEAR_RATIO);
+        const double linear_x = std::clamp(cmd->linear.x, -max_linear_velocity, max_linear_velocity);
+        const double angular_z = std::clamp(cmd->angular.z, -max_angular_velocity, max_angular_velocity);
+        cmd_left_speed = (2.0 * linear_x - wheel_distance * angular_z)/(double)(2.0 * M_PI * wheel_radius * gear_ratio);
+        cmd_right_speed = (2.0 * linear_x + wheel_distance * angular_z)/(double)(2.0 * M_PI * wheel_radius * gear_ratio);
         last_cmd_time_ = this->now();
         cmd_vel_timeout_triggered_ = false;
         new_cmd_received = true;
@@ -224,16 +252,16 @@ private:
         left_motor_pos_unwrapped += delta_left_motor_turns;
         right_motor_pos_unwrapped += delta_right_motor_turns;
 
-        const double left_wheel_moved = delta_left_motor_turns * 2.0 * M_PI * WHEEL_DIAMETER/2.0 * GEAR_RATIO;
-        const double right_wheel_moved = delta_right_motor_turns * 2.0 * M_PI * WHEEL_DIAMETER/2.0 * GEAR_RATIO;
+        const double left_wheel_moved = delta_left_motor_turns * 2.0 * M_PI * wheel_diameter/2.0 * gear_ratio;
+        const double right_wheel_moved = delta_right_motor_turns * 2.0 * M_PI * wheel_diameter/2.0 * gear_ratio;
         double linear_dist = (left_wheel_moved + right_wheel_moved) / 2.0;
-        double angular_dist = (right_wheel_moved - left_wheel_moved) / WHEEL_DISTANCE;
+        double angular_dist = (right_wheel_moved - left_wheel_moved) / wheel_distance;
         robot_pose.x += linear_dist * cos(robot_pose.theta + angular_dist / 2.0);
         robot_pose.y += linear_dist * sin(robot_pose.theta + angular_dist / 2.0);
         robot_pose.theta = wrap_angle_to_pi(robot_pose.theta + angular_dist);
         const double half_theta = robot_pose.theta / 2.0;
-        const double left_wheel_speed_meas = leftMotor.GetVelocity().GetValueAsDouble() * 2.0 * M_PI * GEAR_RATIO;
-        const double right_wheel_speed_meas = rightMotor.GetVelocity().GetValueAsDouble() * 2.0 * M_PI * GEAR_RATIO;
+        const double left_wheel_speed_meas = leftMotor.GetVelocity().GetValueAsDouble() * 2.0 * M_PI * gear_ratio;
+        const double right_wheel_speed_meas = rightMotor.GetVelocity().GetValueAsDouble() * 2.0 * M_PI * gear_ratio;
  
         // Publish Odometry message
         nav_msgs::msg::Odometry odom_msg;
@@ -244,8 +272,8 @@ private:
         odom_msg.pose.pose.position.y = robot_pose.y;
         odom_msg.pose.pose.orientation.z = std::sin(half_theta);
         odom_msg.pose.pose.orientation.w = std::cos(half_theta);
-        odom_msg.twist.twist.linear.x = static_cast<float>((left_wheel_speed_meas + right_wheel_speed_meas) * WHEEL_DIAMETER / 4.0);
-        odom_msg.twist.twist.angular.z = static_cast<float>((right_wheel_speed_meas - left_wheel_speed_meas) * WHEEL_DIAMETER / (2.0 * WHEEL_DISTANCE));
+        odom_msg.twist.twist.linear.x = static_cast<float>((left_wheel_speed_meas + right_wheel_speed_meas) * wheel_diameter / 4.0);
+        odom_msg.twist.twist.angular.z = static_cast<float>((right_wheel_speed_meas - left_wheel_speed_meas) * wheel_diameter / (2.0 * wheel_distance));
 
         // Diagonal covariance (off-diagonals remain 0, the message default).
         odom_msg.pose.covariance[0] = POSE_COV_XY;               // x
@@ -273,8 +301,8 @@ private:
         joint_msg.header.stamp = now;
         joint_msg.name = {"drivewhl_l_joint", "drivewhl_r_joint"};
         joint_msg.position = {
-            left_motor_pos_unwrapped * 2.0 * M_PI * GEAR_RATIO,
-            right_motor_pos_unwrapped * 2.0 * M_PI * GEAR_RATIO
+            left_motor_pos_unwrapped * 2.0 * M_PI * gear_ratio,
+            right_motor_pos_unwrapped * 2.0 * M_PI * gear_ratio
         };
         motor_pos_publisher_->publish(joint_msg);
     }
@@ -287,6 +315,9 @@ private:
         calculate_and_publish_Odometry();  
     }
 
+    float getWheelRadius() const {
+        return wheel_diameter / 2.0;
+    }
     
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_subscription_;
@@ -306,6 +337,19 @@ private:
     bool new_cmd_received = false;
     rclcpp::Time last_cmd_time_;
     bool cmd_vel_timeout_triggered_ = false;
+
+    std::string robot_model;
+    float wheel_distance;
+    float wheel_diameter;
+    float gear_ratio;
+    float max_linear_velocity;
+    float max_angular_velocity;
+    float pid_p;
+    float pid_i;
+    float pid_d;
+    float pid_s;
+    float pid_v;
+    float pid_a;
 };
 
 int main(int argc, char * argv[])
