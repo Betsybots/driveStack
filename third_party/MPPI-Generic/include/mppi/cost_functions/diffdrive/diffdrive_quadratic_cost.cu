@@ -1,55 +1,155 @@
 #include <mppi/cost_functions/diffdrive/diffdrive_quadratic_cost.cuh>
 
+#define RADIUS_SAMPLES 30
+
 DiffdriveQuadraticCost::DiffdriveQuadraticCost(cudaStream_t stream)
 {
   bindToStream(stream);
 }
 
-// different costs
-// 1. Quadratic cost based on deviation of desired linear speed from max linear speed
-// 2. Quadratic cost based on difference from previous angular speed and current angular speed to reduce jerk
-// 3. position of the robot has to be in the center of the walls
-// 4. terminal cost for reaching the desired state
-// 
+float DiffdriveQuadraticCost::computeStateCost(const Eigen::Ref<const output_array> s, int timestep, int* crash_status)
+{
+    float x = s[0];
+    float y = s[1];
+    float theta = s[2];
 
-/*
-float DiffdriveQuadraticCost::computeStateCost(const Eigen::Ref<const output_array> s, int timestep, int* crash_status)
-{
-  
-  return (s[0] - params_.desired_terminal_state[0]) * (s[0] - params_.desired_terminal_state[0]) *
-             params_.robot_position_coeff +
-         (s[1] - params_.desired_terminal_state[1]) * (s[1] - params_.desired_terminal_state[1]) *
-             params_.robot_velocity_coeff +
-         (s[2] - params_.desired_terminal_state[2]) * (s[2] - params_.desired_terminal_state[2]) *
-             params_.pole_angle_coeff +
-         (s[3] - params_.desired_terminal_state[3]) * (s[3] - params_.desired_terminal_state[3]) *
-             params_.pole_angular_velocity_coeff;
-}
-*/
-float DiffdriveQuadraticCost::computeStateCost(const Eigen::Ref<const output_array> s, int timestep, int* crash_status)
-{
-  float quadratic_velocity_cost = ((s[0] - params_.previous_state[0]) * (s[0] - params_.previous_state[0]) +
-                             (s[1] - params_.previous_state[1]) * (s[1] - params_.previous_state[1])) * params_.robot_velocity_coeff;
-                             
-  float quadratic_angular_velocity_cost = ((s[2] - params_.previous_state[2]) * (s[2] - params_.previous_state[2])) * params_.angular_velocity_coeff;
-  return quadratic_velocity_cost + quadratic_angular_velocity_cost;
+    float state_cost = 0;
+    // Calculate Inflation Radius points
+    for (int i = 0; i < RADIUS_SAMPLES; i++ )
+    {
+        float x_r = x + this->params_.inflation_radius * cosf(i * 360/RADIUS_SAMPLES);
+        float y_r = y + this->params_.inflation_radius * sinf(i * 360/RADIUS_SAMPLES);
+
+        float y_left_wall = 0;
+        for (int j = 0; j <= this->params_.degree; ++j) {
+            y_left_wall += this->params_.left_wall_edge_coeffs[j] * std::pow(x_r, j);
+        }
+        
+        float y_right_wall = 0;
+        for (int j = 0; j <= this->params_.degree; ++j) {
+            y_right_wall += this->params_.right_wall_edge_coeffs[j] * std::pow(x_r, j);
+        }
+
+        if ((y_r <= y_right_wall && y_r <= y_left_wall) ||
+            (y_r >= y_right_wall && y_r >= y_left_wall))
+        return 1e8f;
+    }
+
+    float y_left = 0;
+    for (int j = 0; j <= this->params_.degree; ++j) {
+        y_left += this->params_.left_wall_edge_coeffs[j] * std::pow(x, j);
+    }
+        
+    float y_right = 0;
+    for (int j = 0; j <= this->params_.degree; ++j) {
+        y_right += this->params_.right_wall_edge_coeffs[j] * std::pow(x, j);
+    }
+
+    state_cost += SQ(2 * y - y_right - y_left) * this->params_.robot_position_coeff;
+    return state_cost;
 }
 
 __device__ float DiffdriveQuadraticCost::computeStateCost(float* state, int timestep, float* theta_c, int* crash_status)
 {
-    float quadratic_velocity = (state[0] - params_.previous_state[0]) * (state[0] - params_.previous_state[0]) + \
-                               (state[1] - params_.previous_state[1]) * (state[1] - params_.previous_state[1]);
-    quadratic_velocity *= params_.robot_velocity_coeff;
-    float quadratic_angular_velocity = (state[2] - params_.previous_state[2]) * (state[2] - params_.previous_state[2]);
-    quadratic_angular_velocity *= params_.angular_velocity_coeff;
-    return quadratic_velocity + quadratic_angular_velocity;
+    float x = state[0];
+    float y = state[1];
+    float theta = state[2];
+    float state_cost = 0;
+
+    // Calculate Inflation Radius points
+    for (int i = 0; i < RADIUS_SAMPLES; i++ )
+    {
+        float x_r = x + this->params_.inflation_radius * cosf(i * 360/RADIUS_SAMPLES);
+        float y_r = y + this->params_.inflation_radius * sinf(i * 360/RADIUS_SAMPLES);
+
+        float y_left_wall = 0;
+        for (int j = 0; j <= this->params_.degree; ++j) {
+            y_left_wall += this->params_.left_wall_edge_coeffs[j] * std::pow(x_r, j);
+        }
+        
+        float y_right_wall = 0;
+        for (int j = 0; j <= this->params_.degree; ++j) {
+            y_right_wall += this->params_.right_wall_edge_coeffs[j] * std::pow(x_r, j);
+        }
+
+        if ((y_r <= y_right_wall && y_r <= y_left_wall) ||
+            (y_r >= y_right_wall && y_r >= y_left_wall))
+        return 1e8f;
+    }
+
+    float y_left = 0;
+    for (int j = 0; j <= this->params_.degree; ++j) {
+        y_left += this->params_.left_wall_edge_coeffs[j] * std::pow(x, j);
+    }
+        
+    float y_right = 0;
+    for (int j = 0; j <= this->params_.degree; ++j) {
+        y_right += this->params_.right_wall_edge_coeffs[j] * std::pow(x, j);
+    }
+
+    state_cost += SQ(2 * y - y_right - y_left) * this->params_.robot_position_coeff;
+    return state_cost;
 }
 
 __device__ float DiffdriveQuadraticCost::terminalCost(float* state, float* theta_c)
 {
-  return 0.0;
+    float x = state[0];
+    float y = state[1];
+    float theta = state[2];
+
+    float y_left_wall = 0;
+    for (int j = 0; j <= this->params_.degree; ++j) {
+        y_left_wall += this->params_.left_wall_edge_coeffs[j] * std::pow(x, j);
+    }
+        
+    float y_right_wall = 0;
+    for (int j = 0; j <= this->params_.degree; ++j) {
+        y_right_wall += this->params_.right_wall_edge_coeffs[j] * std::pow(x, j);
+    }
+
+    if ((y <= y_right_wall && y <= y_left_wall) ||
+        (y >= y_right_wall && y >= y_left_wall))
+        return 1e8f;
+
+    float terminal_cost = SQ(2 * y - y_right_wall - y_left_wall) * this->params_.robot_position_coeff;
+    return terminal_cost;
 }
+
 float DiffdriveQuadraticCost::terminalCost(const Eigen::Ref<const output_array> state)
 {
-  return 0.0;
+    float x = state[0];
+    float y = state[1];
+    float theta = state[2];
+
+    float y_left_wall = 0;
+    for (int j = 0; j <= this->params_.degree; ++j) {
+        y_left_wall += this->params_.left_wall_edge_coeffs[j] * std::pow(x, j);
+    }
+        
+    float y_right_wall = 0;
+    for (int j = 0; j <= this->params_.degree; ++j) {
+        y_right_wall += this->params_.right_wall_edge_coeffs[j] * std::pow(x, j);
+    }
+
+    if ((y <= y_right_wall && y <= y_left_wall) ||
+        (y >= y_right_wall && y >= y_left_wall))
+        return 1e8f;
+
+    float terminal_cost = SQ(2 * y - y_right_wall - y_left_wall) * this->params_.robot_position_coeff;
+    return terminal_cost;
 }
+
+float DiffdriveQuadraticCost::computeInputCost(const Eigen::Ref<const control_array> u, int timestep, int* crash_status)
+{
+    float lin_vel_cost = 0.5f * this->params_.robot_lin_vel_coeff * SQ(u[0] - this->params_.max_lin_vel);
+    float ang_vel_cost = 0.5f * this->params_.robot_ang_vel_coeff * SQ(u[1] - this->params_.prev_ang_vel);
+    this->params_.prev_ang_vel = u[1];
+    return lin_vel_cost + ang_vel_cost;
+}
+
+__device__ float DiffdriveQuadraticCost::computeInputCost(float* u, int timestep, float* theta_c, int* crash_status)
+{
+    return 0.0f;
+}
+
+

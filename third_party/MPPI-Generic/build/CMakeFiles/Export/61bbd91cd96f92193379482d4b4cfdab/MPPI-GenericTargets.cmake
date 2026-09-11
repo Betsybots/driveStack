@@ -61,7 +61,7 @@ add_library(MPPI::MPPI INTERFACE IMPORTED)
 set_target_properties(MPPI::MPPI PROPERTIES
   INTERFACE_COMPILE_DEFINITIONS "CMAKE_USE_CUDA_BARRIERS;CMAKE_USE_CUDA_BARRIERS_DYN;CMAKE_USE_CUDA_BARRIERS_ROLLOUT"
   INTERFACE_COMPILE_OPTIONS "\$<\$<COMPILE_LANGUAGE:CUDA>:--display-error-number>"
-  INTERFACE_INCLUDE_DIRECTORIES "/usr/local/cuda-13.3/targets/x86_64-linux/include;/usr/local/cuda-13.3/targets/x86_64-linux/include/cccl;${_IMPORT_PREFIX}/include;${_IMPORT_PREFIX}/include/cnpy"
+  INTERFACE_INCLUDE_DIRECTORIES "/usr/local/cuda/targets/x86_64-linux/include;/usr/local/cuda/targets/x86_64-linux/include/cccl;${_IMPORT_PREFIX}/include;${_IMPORT_PREFIX}/include/cnpy"
   INTERFACE_LINK_LIBRARIES "CUDA::curand;CUDA::cufft;cnpy;Eigen3::Eigen"
 )
 

@@ -209,12 +209,24 @@ public:
   // =================== END METHODS THAT SHOULD NOT BE OVERWRITTEN ============
 
   // =================== METHODS THAT CAN BE OVERWRITTEN =======================
+  float computeInputCost(const Eigen::Ref<const control_array> u, int timestep, int* crash_status)
+  {
+    throw std::logic_error("SubClass did not implement computeInputCost");
+  }
+
+  /**
+   *
+   * @param u current input as a float array
+   * @return input cost on GPU
+   */
+  __device__ float computeInputCost(float* u, int timestep, float* theta_c, int* crash_status);
+
   float computeRunningCost(const Eigen::Ref<const output_array> y, const Eigen::Ref<const control_array> u,
                            int timestep, int* crash)
   {
     CLASS_T* derived = static_cast<CLASS_T*>(this);
 
-    return derived->computeStateCost(y, timestep, crash) +
+    return derived->computeStateCost(y, timestep, crash) + derived->computeInputCost(u, timestep, crash) +
            derived->computeControlCost(u, timestep, crash);
   }
 

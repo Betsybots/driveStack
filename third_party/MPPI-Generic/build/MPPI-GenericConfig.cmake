@@ -9,7 +9,7 @@
 ####### Any changes to this file will be overwritten by the next CMake run ####
 ####### The input file was Config.cmake.in                            ########
 
-get_filename_component(PACKAGE_PREFIX_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../../usr/local" ABSOLUTE)
+get_filename_component(PACKAGE_PREFIX_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../../../../usr/local" ABSOLUTE)
 
 macro(set_and_check _var _file)
   set(${_var} "${_file}")
@@ -32,8 +32,8 @@ endmacro()
 include(CMakeFindDependencyMacro)
 
 set(MPPI_LIBRARIES "MPPI::MPPI")
-set_and_check(MPPI_INCLUDE_DIRS "/home/arun/MPPI-Generic/include")
-set_and_check(MPPI_TARGET_CMAKE_FILE "/home/arun/MPPI-Generic/build/MPPI-GenericTargets.cmake")
+set_and_check(MPPI_INCLUDE_DIRS "/home/arun/driveStack/third_party/MPPI-Generic/include")
+set_and_check(MPPI_TARGET_CMAKE_FILE "/home/arun/driveStack/third_party/MPPI-Generic/build/MPPI-GenericTargets.cmake")
 
 # Find dependencies of MPPI-Generic
 find_dependency(cnpy REQUIRED HINTS ${PACKAGE_PREFIX_DIR})

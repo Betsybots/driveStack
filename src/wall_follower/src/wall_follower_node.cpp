@@ -4,11 +4,13 @@
 #include <functional>
 #include <limits>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/twist.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/point_cloud2_iterator.hpp"
 #include "std_msgs/msg/header.hpp"
@@ -17,6 +19,16 @@
 #include <Eigen/Dense>
 #include <mppi/instantiations/diffdrive_mppi/diffdrive_mppi.cuh>
 
+
+const int NUM_TIMESTEPS = 100;
+const int NUM_ROLLOUTS = 2048;
+
+using DYN_T = DiffdriveDynamics;
+using COST_T = DiffdriveQuadraticCost;
+using FB_T = DDPFeedback<DYN_T, NUM_TIMESTEPS>;
+using SAMPLING_T = mppi::sampling_distributions::GaussianDistribution<DYN_T::DYN_PARAMS_T>;
+using CONTROLLER_T = VanillaMPPIController<DYN_T, COST_T, FB_T, NUM_TIMESTEPS, NUM_ROLLOUTS, SAMPLING_T>;
+using CONTROLLER_PARAMS_T = CONTROLLER_T::TEMPLATED_PARAMS;
 
 static double deg2rad(const double deg)
 {
@@ -31,6 +43,7 @@ public:
   {
     pointcloud_topic_ = this->declare_parameter<std::string>("pointcloud_topic", "/lidar_points");
     cmd_vel_topic_ = this->declare_parameter<std::string>("cmd_vel_topic", "/cmd_vel");
+    odometry_topic_ = this->declare_parameter<std::string>("odometry_topic", "/FinalOdometry");
     side_half_angle_deg_ = this->declare_parameter<double>("side_half_angle_deg", 25.0);
     min_valid_range_m_ = this->declare_parameter<double>("min_valid_range_m", 0.05);
     max_valid_range_m_ = this->declare_parameter<double>("max_valid_range_m", 30.0);
@@ -61,6 +74,20 @@ public:
     mpc_weight_collision_ = this->declare_parameter<double>("mpc_weight_collision", 50.0);
     mpc_safety_margin_m_ = this->declare_parameter<double>("mpc_safety_margin_m", 0.3);
 
+
+    //MPPI
+    float mppi_dt_ = this->declare_parameter<double>("mppi_dt", 0.02);
+    fb_controller = std::make_shared<FB_T>(dynamics.get(), mppi_dt_);
+    std::fill(sampler_params.std_dev, sampler_params.std_dev + DYN_T::CONTROL_DIM, 1.0);
+    std::shared_ptr<SAMPLING_T> sampler = std::make_shared<SAMPLING_T>(sampler_params);
+    controller_params.dt_ = mppi_dt_;
+    controller_params.lambda_ = 1.0;
+    controller_params.dynamics_rollout_dim_ = dim3(64, DYN_T::STATE_DIM, 1);
+    controller_params.cost_rollout_dim_ = dim3(NUM_TIMESTEPS, 1, 1);
+    std::shared_ptr<CONTROLLER_T> controller = std::make_shared<CONTROLLER_T>(
+      dynamics.get(), cost.get(), fb_controller.get(), sampler.get(), controller_params);
+
+
     cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>(cmd_vel_topic_, 10);
     filtered_pointcloud_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(
       filtered_pointcloud_topic_, rclcpp::QoS(10));
@@ -73,6 +100,12 @@ public:
       pointcloud_topic_,
       rclcpp::SensorDataQoS(),
       std::bind(&WallFollower::pointcloudCallback, this, std::placeholders::_1));
+
+    odometry_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
+      odometry_topic_,
+      rclcpp::QoS(10),
+      std::bind(&WallFollower::odometryCallback, this, std::placeholders::_1));
+    
 
     wall_timer_ = this->create_wall_timer(
       std::chrono::milliseconds(20),
@@ -117,10 +150,37 @@ private:
       return coeffs;
   }
 
+  // Runs on a fixed schedule so cmd_vel publishing rate is decoupled from the point cloud rate.
   void timerCallback()
   {
-    // This callback is intentionally left empty. It serves as a placeholder to keep the node alive.
+    float left_min;
+    float right_min;
+    float front_min;
+    {
+      std::lock_guard<std::mutex> lock(sector_mins_mutex_);
+      left_min = left_min_;
+      right_min = right_min_;
+      front_min = front_min_;
+    }
 
+    geometry_msgs::msg::Twist cmd = (controller_type_ == "pid")
+      ? computePidCmdVel(left_min, right_min)
+      : computeMpcCmdVel(left_min, right_min, front_min);
+
+    cmd_vel_pub_->publish(cmd);
+
+    RCLCPP_INFO(
+      this->get_logger(),
+      "Side distances [left, right]=[%.3f, %.3f] -> cmd_vel [vx=%.3f, wz=%.3f]",
+      std::isfinite(left_min) ? left_min : -1.0F,
+      std::isfinite(right_min) ? right_min : -1.0F,
+      cmd.linear.x,
+      cmd.angular.z);
+  }
+
+  void odometryCallback(const nav_msgs::msg::Odometry::SharedPtr msg)
+  {
+    latest_odometry_ = msg;
   }
   geometry_msgs::msg::Twist computePidCmdVel(const float left_distance, const float right_distance)
   {
@@ -307,19 +367,12 @@ private:
     publishPointCloud(msg, left_edge_points, left_wall_edge_pub_);
     publishPointCloud(msg, right_edge_points, right_wall_edge_pub_);
 
-    geometry_msgs::msg::Twist cmd = (controller_type_ == "pid")
-      ? computePidCmdVel(left_min, right_min)
-      : computeMpcCmdVel(left_min, right_min, front_min);
-
-    cmd_vel_pub_->publish(cmd);
-
-    RCLCPP_INFO(
-      this->get_logger(),
-      "Side distances [left, right]=[%.3f, %.3f] -> cmd_vel [vx=%.3f, wz=%.3f]",
-      std::isfinite(left_min) ? left_min : -1.0F,
-      std::isfinite(right_min) ? right_min : -1.0F,
-      cmd.linear.x,
-      cmd.angular.z);
+    {
+      std::lock_guard<std::mutex> lock(sector_mins_mutex_);
+      left_min_ = left_min;
+      right_min_ = right_min;
+      front_min_ = front_min;
+    }
   }
 
   // Buckets a side's points into angular bins and keeps each bin's lowest-z point, tracing
@@ -494,6 +547,7 @@ private:
 
   std::string pointcloud_topic_;
   std::string cmd_vel_topic_;
+  std::string odometry_topic_;
   std::string filtered_pointcloud_topic_;
   std::string left_wall_edge_topic_;
   std::string right_wall_edge_topic_;
@@ -515,6 +569,12 @@ private:
   double prev_error_ {0.0};
   rclcpp::Time prev_time_;
 
+  // Latest sector distances from pointcloudCallback, consumed by the periodic timerCallback.
+  std::mutex sector_mins_mutex_;
+  float left_min_ {std::numeric_limits<float>::infinity()};
+  float right_min_ {std::numeric_limits<float>::infinity()};
+  float front_min_ {std::numeric_limits<float>::infinity()};
+
   int mpc_horizon_steps_;
   int mpc_omega_candidates_;
   double mpc_dt_;
@@ -527,10 +587,21 @@ private:
   double prev_mpc_omega_ {0.0};
 
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr pointcloud_sub_;
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odometry_sub_;
+  nav_msgs::msg::Odometry::SharedPtr latest_odometry_;
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr filtered_pointcloud_pub_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr left_wall_edge_pub_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr right_wall_edge_pub_;
+
+  //MPPI
+  std::shared_ptr<DYN_T> dynamics = std::make_shared<DYN_T>();  // set up dynamics
+  std::shared_ptr<COST_T> cost = std::make_shared<COST_T>();    // set up cost
+  std::shared_ptr<FB_T> fb_controller;
+
+  SAMPLING_T::SAMPLING_PARAMS_T sampler_params;
+  CONTROLLER_PARAMS_T controller_params;
+
 };
 
 int main(int argc, char ** argv)

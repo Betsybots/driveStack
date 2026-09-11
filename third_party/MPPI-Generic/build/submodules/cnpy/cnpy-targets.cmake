@@ -56,7 +56,7 @@ set_target_properties(cnpy PROPERTIES
 # Import target "cnpy" for configuration "Release"
 set_property(TARGET cnpy APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
 set_target_properties(cnpy PROPERTIES
-  IMPORTED_LOCATION_RELEASE "/home/arun/MPPI-Generic/build/lib/libcnpy.so"
+  IMPORTED_LOCATION_RELEASE "/home/arun/driveStack/third_party/MPPI-Generic/build/lib/libcnpy.so"
   IMPORTED_SONAME_RELEASE "libcnpy.so"
   )
 
