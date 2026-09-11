@@ -77,7 +77,7 @@ public:
 
     //MPPI
     float mppi_dt_ = this->declare_parameter<double>("mppi_dt", 0.02);
-    fb_controller = std::make_shared<FB_T>(dynamics.get(), mppi_dt_);
+    fb_controller = std::make_shared<FB_T>(model.get(), mppi_dt_);
     std::fill(sampler_params.std_dev, sampler_params.std_dev + DYN_T::CONTROL_DIM, 1.0);
     std::shared_ptr<SAMPLING_T> sampler = std::make_shared<SAMPLING_T>(sampler_params);
     controller_params.dt_ = mppi_dt_;
@@ -85,9 +85,19 @@ public:
     controller_params.dynamics_rollout_dim_ = dim3(64, DYN_T::STATE_DIM, 1);
     controller_params.cost_rollout_dim_ = dim3(NUM_TIMESTEPS, 1, 1);
     std::shared_ptr<CONTROLLER_T> controller = std::make_shared<CONTROLLER_T>(
-      dynamics.get(), cost.get(), fb_controller.get(), sampler.get(), controller_params);
+      model.get(), cost.get(), fb_controller.get(), sampler.get(), controller_params);
 
+    current_state = model->getZeroState();
+    next_state = model->getZeroState();
+    output = DiffdriveDynamics::output_array::Zero();
 
+  float dt = 0.02;
+  int max_iter = 1;
+  float lambda = 0.25;
+  float alpha = 0.0;
+  const int num_timesteps = 100;
+
+    //MPPI
     cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>(cmd_vel_topic_, 10);
     filtered_pointcloud_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(
       filtered_pointcloud_topic_, rclcpp::QoS(10));
@@ -181,7 +191,49 @@ private:
   void odometryCallback(const nav_msgs::msg::Odometry::SharedPtr msg)
   {
     latest_odometry_ = msg;
+    
+    int time_horizon = 5000;
+    
+    current_state(S_INDEX(POS_X)) = latest_odometry_.pose.pose.position.x;
+    current_state(S_INDEX(POS_Y)) = latest_odometry_.pose.pose.position.y;
+    current_state(S_INDEX(THETA)) = latest_odometry_.pose.pose.position.theta; // Change this from quaternion to angle
+    DiffdriveDynamics::state_array xdot = model->getZeroState();
+
+  auto time_start = std::chrono::system_clock::now();
+  for (int i = 0; i < time_horizon; ++i)
+  {
+    // Compute the control
+    controller->computeControl(current_state, 1);
+
+    // Increment the state
+    DiffdriveDynamics::control_array control;
+    control = controller->getControlSeq().block(0, 0, CartpoleDynamics::CONTROL_DIM, 1);
+    model->enforceConstraints(current_state, control);
+    model->step(current_state, next_state, xdot, control, output, i, dt);
+    current_state = next_state;
+
+    if (i % 50 == 0)
+    {
+      printf("Current Time: %f    ", i * dt);
+      printf("Current Baseline Cost: %f    ", CartpoleController->getBaselineCost());
+      model->printState(current_state.data());
+      //      std::cout << control << std::endl;
+    }
+
+    // Slide the controls down before calling the optimizer again
+    controller->slideControlSequence(1);
   }
+  auto time_end = std::chrono::system_clock::now();
+  auto diff = std::chrono::duration<double, std::milli>(time_end - time_start);
+  printf("The elapsed time is: %f milliseconds\n", diff.count());
+
+    geometry_msgs::msg::Twist cmd;
+    
+    cmd.linear.x = control[0];
+    cmd.angular.z = control[1];
+    cmd_vel_pub_->publish(cmd);
+  }
+
   geometry_msgs::msg::Twist computePidCmdVel(const float left_distance, const float right_distance)
   {
     geometry_msgs::msg::Twist cmd;
@@ -595,12 +647,15 @@ private:
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr right_wall_edge_pub_;
 
   //MPPI
-  std::shared_ptr<DYN_T> dynamics = std::make_shared<DYN_T>();  // set up dynamics
+  std::shared_ptr<DYN_T> model = std::make_shared<DYN_T>();  // set up dynamics
   std::shared_ptr<COST_T> cost = std::make_shared<COST_T>();    // set up cost
   std::shared_ptr<FB_T> fb_controller;
 
   SAMPLING_T::SAMPLING_PARAMS_T sampler_params;
   CONTROLLER_PARAMS_T controller_params;
+  DiffdriveDynamics::state_array current_state;
+  DiffdriveDynamics::state_array next_state;
+  DiffdriveDynamics::output_array output;
 
 };
 
