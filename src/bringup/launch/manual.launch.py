@@ -11,11 +11,17 @@ def generate_launch_description():
     diff_drive_pkg_dir = get_package_share_directory('differential-drive')
     pkg_dir = get_package_share_directory('bringup')
 
+    # Diff Drive
+    # Joy_node, Teleop_twist_joy
+    
     config_file_arg = DeclareLaunchArgument(
         'config_file',
         default_value=os.path.join(diff_drive_pkg_dir, 'config', 'diffDrive.yaml'),
         description='Path to differential-drive YAML config file'
     )
+    
+    '''  Localizer is commented out for Manual mode in DriveStack
+
 
     ekf_config_file_arg = DeclareLaunchArgument(
         'ekf_config_file',
@@ -59,6 +65,23 @@ def generate_launch_description():
         description='Localization odometry output topic'
     )
 
+
+    localization_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_dir, 'launch', 'localization.launch.py')
+        ),
+        launch_arguments={
+            'use_ekf': LaunchConfiguration('use_ekf'),
+            'with_lidar': LaunchConfiguration('with_lidar'),
+            'ekf_config_file': LaunchConfiguration('ekf_config_file'),
+            'wheel_odom_topic': LaunchConfiguration('wheel_odom_topic'),
+            'imu_topic': LaunchConfiguration('imu_topic'),
+            'lidar_odom_topic': LaunchConfiguration('lidar_odom_topic'),
+            'output_topic': LaunchConfiguration('output_topic'),
+        }.items()
+    )
+    '''
+
     joy_config_file_arg = DeclareLaunchArgument(
         'joy_config_file',
         default_value=os.path.join(pkg_dir, 'config', 'joystick.yaml'),
@@ -96,34 +119,18 @@ def generate_launch_description():
             ]
     )
 
-    localization_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(pkg_dir, 'launch', 'localization.launch.py')
-        ),
-        launch_arguments={
-            'use_ekf': LaunchConfiguration('use_ekf'),
-            'with_lidar': LaunchConfiguration('with_lidar'),
-            'ekf_config_file': LaunchConfiguration('ekf_config_file'),
-            'wheel_odom_topic': LaunchConfiguration('wheel_odom_topic'),
-            'imu_topic': LaunchConfiguration('imu_topic'),
-            'lidar_odom_topic': LaunchConfiguration('lidar_odom_topic'),
-            'output_topic': LaunchConfiguration('output_topic'),
-        }.items()
-    )
-
-
     return LaunchDescription([
         config_file_arg,
-        ekf_config_file_arg,
-        use_ekf_arg,
-        with_lidar_arg,
-        wheel_odom_topic_arg,
-        imu_topic_arg,
-        lidar_odom_topic_arg,
-        output_topic_arg,
+        #ekf_config_file_arg,
+        #use_ekf_arg,
+        #with_lidar_arg,
+        #wheel_odom_topic_arg,
+        #imu_topic_arg,
+        #lidar_odom_topic_arg,
+        #output_topic_arg,
+        #localization_launch,
         joy_config_file_arg,
         joy_node,
         joy_teleop_node,
         diff_drive_node,
-        localization_launch,
     ])
