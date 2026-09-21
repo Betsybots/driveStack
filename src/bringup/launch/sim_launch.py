@@ -9,11 +9,11 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 def generate_launch_description():
     # 1. Setup paths to required packages
-    pkg_robot_description = get_package_share_directory('diy_robot_description')
-    pkg_sim = get_package_share_directory('diy_sim')
+    pkg_robot_description = get_package_share_directory('robot_description')
+    pkg_sim = get_package_share_directory('sim')
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
     pkg_challenge_bringup = get_package_share_directory('challenge_bringup')
-    fast_lio_dir = get_package_share_directory('fast_lio')
+    fast_lio_dir = get_package_share_directory('fast_lio_ros2')
     
     # 2. Combine the path with the actual launch file name
     fast_lio_launch_file = os.path.join(fast_lio_dir, 'launch', 'mapping.launch.py')
@@ -21,7 +21,7 @@ def generate_launch_description():
     # 2. Declare configurations/arguments
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
     
-    # Path to your custom world file inside diy_sim
+    # Path to your custom world file inside sim
     world_path = os.path.join(pkg_sim, 'worlds', 'diy_world.sdf')
     rviz_config = os.path.join(pkg_challenge_bringup, 'rviz', 'lidar_points.rviz')
 

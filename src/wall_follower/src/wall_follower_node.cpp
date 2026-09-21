@@ -76,15 +76,15 @@ public:
 
 
     //MPPI
-    float mppi_dt_ = this->declare_parameter<double>("mppi_dt", 0.02);
+    mppi_dt_ = this->declare_parameter<double>("mppi_dt", 0.02);
     fb_controller = std::make_shared<FB_T>(model.get(), mppi_dt_);
     std::fill(sampler_params.std_dev, sampler_params.std_dev + DYN_T::CONTROL_DIM, 1.0);
-    std::shared_ptr<SAMPLING_T> sampler = std::make_shared<SAMPLING_T>(sampler_params);
+    sampler = std::make_shared<SAMPLING_T>(sampler_params);
     controller_params.dt_ = mppi_dt_;
     controller_params.lambda_ = 1.0;
     controller_params.dynamics_rollout_dim_ = dim3(64, DYN_T::STATE_DIM, 1);
     controller_params.cost_rollout_dim_ = dim3(NUM_TIMESTEPS, 1, 1);
-    std::shared_ptr<CONTROLLER_T> controller = std::make_shared<CONTROLLER_T>(
+    controller = std::make_shared<CONTROLLER_T>(
       model.get(), cost.get(), fb_controller.get(), sampler.get(), controller_params);
 
     current_state = model->getZeroState();
@@ -192,46 +192,54 @@ private:
   {
     latest_odometry_ = msg;
     
-    int time_horizon = 5000;
+    int time_horizon = 20;
     
-    current_state(S_INDEX(POS_X)) = latest_odometry_.pose.pose.position.x;
-    current_state(S_INDEX(POS_Y)) = latest_odometry_.pose.pose.position.y;
-    current_state(S_INDEX(THETA)) = latest_odometry_.pose.pose.position.theta; // Change this from quaternion to angle
-    DiffdriveDynamics::state_array xdot = model->getZeroState();
+    const auto & orientation = latest_odometry_->pose.pose.orientation;
+    // Yaw extracted directly from quaternion (planar robot, so roll/pitch are ignored).
+    const double yaw = std::atan2(
+      2.0 * (orientation.w * orientation.z + orientation.x * orientation.y),
+      1.0 - 2.0 * (orientation.y * orientation.y + orientation.z * orientation.z));
 
-  auto time_start = std::chrono::system_clock::now();
-  for (int i = 0; i < time_horizon; ++i)
-  {
-    // Compute the control
-    controller->computeControl(current_state, 1);
+    current_state[0] = latest_odometry_->pose.pose.position.x;
+    current_state[1] = latest_odometry_->pose.pose.position.y;
+    current_state[2] = yaw;
+    DiffdriveDynamics::state_array xdot = model->getZeroState();
 
     // Increment the state
     DiffdriveDynamics::control_array control;
-    control = controller->getControlSeq().block(0, 0, CartpoleDynamics::CONTROL_DIM, 1);
-    model->enforceConstraints(current_state, control);
-    model->step(current_state, next_state, xdot, control, output, i, dt);
-    current_state = next_state;
-
-    if (i % 50 == 0)
+    auto time_start = std::chrono::system_clock::now();
+    for (int i = 0; i < time_horizon; ++i)
     {
-      printf("Current Time: %f    ", i * dt);
-      printf("Current Baseline Cost: %f    ", CartpoleController->getBaselineCost());
-      model->printState(current_state.data());
-      //      std::cout << control << std::endl;
-    }
+      // Compute the control
+      controller->computeControl(current_state, 1);
 
-    // Slide the controls down before calling the optimizer again
-    controller->slideControlSequence(1);
-  }
-  auto time_end = std::chrono::system_clock::now();
-  auto diff = std::chrono::duration<double, std::milli>(time_end - time_start);
-  printf("The elapsed time is: %f milliseconds\n", diff.count());
+      control = controller->getControlSeq().block(0, 0, DiffdriveDynamics::CONTROL_DIM, 1);
+      model->enforceConstraints(current_state, control);
+      model->step(current_state, next_state, xdot, control, output, i, mppi_dt_);
+      current_state = next_state;
+
+      if (i % 50 == 0)
+      {
+        printf("Current Time: %f    ", i * mppi_dt_);
+        printf("Current Baseline Cost: %f    ", controller->getBaselineCost());
+        model->printState(current_state.data());
+        //      std::cout << control << std::endl;
+      }
+
+      // Slide the controls down before calling the optimizer again
+      controller->slideControlSequence(1);
+    }
+    auto time_end = std::chrono::system_clock::now();
+    auto diff = std::chrono::duration<double, std::milli>(time_end - time_start);
+    printf("The elapsed time is: %f milliseconds\n", diff.count());
 
     geometry_msgs::msg::Twist cmd;
-    
+
     cmd.linear.x = control[0];
     cmd.angular.z = control[1];
-    cmd_vel_pub_->publish(cmd);
+
+    printf("Publishing command: linear.x = %f, angular.z = %f\n", cmd.linear.x, cmd.angular.z);
+    //cmd_vel_pub_->publish(cmd);
   }
 
   geometry_msgs::msg::Twist computePidCmdVel(const float left_distance, const float right_distance)
@@ -414,17 +422,35 @@ private:
 
     std::vector<std::array<float, 5>> left_edge_points;
     std::vector<std::array<float, 5>> right_edge_points;
-    computeWallBottomEdge(filtered_points, "left", M_PI_2, deg2rad(side_half_angle_deg_), left_edge_points);
-    computeWallBottomEdge(filtered_points, "right", -M_PI_2, deg2rad(side_half_angle_deg_), right_edge_points);
-    publishPointCloud(msg, left_edge_points, left_wall_edge_pub_);
-    publishPointCloud(msg, right_edge_points, right_wall_edge_pub_);
+    Eigen::VectorXd left_poly_coeffs;
+    Eigen::VectorXd right_poly_coeffs;
+    computeWallBottomEdge(
+      filtered_points, "left", M_PI_2, deg2rad(side_half_angle_deg_), left_edge_points, left_poly_coeffs);
+    computeWallBottomEdge(
+      filtered_points, "right", -M_PI_2, deg2rad(side_half_angle_deg_), right_edge_points, right_poly_coeffs);
+
+    if (left_poly_coeffs.size() > 0 && right_poly_coeffs.size() > 0) {
+      std::array<float, 4> left_coeffs_f{};
+      std::array<float, 4> right_coeffs_f{};
+      const int degree = static_cast<int>(left_poly_coeffs.size()) - 1;
+      for (int j = 0; j <= degree; ++j) {
+        left_coeffs_f[j] = static_cast<float>(left_poly_coeffs[j]);
+        right_coeffs_f[j] = static_cast<float>(right_poly_coeffs[j]);
+      }
+      cost->setWallEdgeCoeffs(left_coeffs_f.data(), right_coeffs_f.data(), degree);
+    }
 
     {
       std::lock_guard<std::mutex> lock(sector_mins_mutex_);
+      left_edge_points_ = left_edge_points;
+      right_edge_points_ = right_edge_points;
       left_min_ = left_min;
       right_min_ = right_min;
       front_min_ = front_min;
     }
+
+    publishPointCloud(msg, left_edge_points_, left_wall_edge_pub_);
+    publishPointCloud(msg, right_edge_points_, right_wall_edge_pub_);
   }
 
   // Buckets a side's points into angular bins and keeps each bin's lowest-z point, tracing
@@ -434,7 +460,8 @@ private:
     std::string side,
     const double center_angle,
     const double half_angle,
-    std::vector<std::array<float, 5>> & poly_points)
+    std::vector<std::array<float, 5>> & poly_points,
+    Eigen::VectorXd & poly_coeffs_out)
   {
     const double bin_size = edge_bin_size_rad_;
     const int num_bins = M_PI_2 / bin_size;
@@ -481,7 +508,7 @@ private:
         edge_points.push_back(bin_min_z[i]);
       }
     }
-    int degree = 3;
+    int degree = 5;
     Eigen::VectorXd coeffs = fitPolynomial(edge_points, degree);
     for (auto & point : edge_points) {
       float x = point[0];
@@ -493,6 +520,7 @@ private:
       point[2] = avg_z;  // Set z to average z of the edge points
       poly_points.push_back(point);
     }
+    poly_coeffs_out = coeffs;
   }
 
   void computeBottomEdge(const std::vector<std::array<float, 5>> & points, 
@@ -627,6 +655,9 @@ private:
   float right_min_ {std::numeric_limits<float>::infinity()};
   float front_min_ {std::numeric_limits<float>::infinity()};
 
+  std::vector<std::array<float, 5>> left_edge_points_;
+  std::vector<std::array<float, 5>> right_edge_points_;
+
   int mpc_horizon_steps_;
   int mpc_omega_candidates_;
   double mpc_dt_;
@@ -650,6 +681,9 @@ private:
   std::shared_ptr<DYN_T> model = std::make_shared<DYN_T>();  // set up dynamics
   std::shared_ptr<COST_T> cost = std::make_shared<COST_T>();    // set up cost
   std::shared_ptr<FB_T> fb_controller;
+  std::shared_ptr<CONTROLLER_T> controller;
+  std::shared_ptr<SAMPLING_T> sampler;
+  float mppi_dt_;
 
   SAMPLING_T::SAMPLING_PARAMS_T sampler_params;
   CONTROLLER_PARAMS_T controller_params;

@@ -11,11 +11,16 @@
 
 struct DiffdriveQuadraticCostParams : public CostParams<1>
 {
+  // Fixed-size storage (not raw pointers): this struct is copied byte-for-byte to the
+  // GPU via cudaMemcpy, so any pointer member would hold a host address and dereferencing
+  // it on the device causes an illegal memory access.
+  static const int MAX_POLY_DEGREE = 10;
+
   float robot_position_coeff = 1000;
   float robot_lin_vel_coeff = 100;
   float robot_ang_vel_coeff = 2000;
-  float* right_wall_edge_coeffs;
-  float* left_wall_edge_coeffs;
+  float right_wall_edge_coeffs[MAX_POLY_DEGREE + 1] = { 0.0f };
+  float left_wall_edge_coeffs[MAX_POLY_DEGREE + 1] = { 0.0f };
   int degree = 3;
   float terminal_cost_coeff = 0;
   float inflation_radius = 3.0;
@@ -64,10 +69,18 @@ public:
 
   float terminalCost(const Eigen::Ref<const output_array> s);
 
-  void setWallEdgeCoeffs(float* left_wall_coeffs, float* right_wall_coeffs)
+  // Copies up to MAX_POLY_DEGREE+1 coefficients into the params struct (by value) and
+  // pushes the update to the GPU. degree is clamped to what the fixed-size arrays hold.
+  void setWallEdgeCoeffs(const float* left_wall_coeffs, const float* right_wall_coeffs, int degree)
   {
-    this->params_.left_wall_edge_coeffs = left_wall_coeffs;
-    this->params_.right_wall_edge_coeffs = right_wall_coeffs;
+    degree = degree < DiffdriveQuadraticCostParams::MAX_POLY_DEGREE
+      ? degree : DiffdriveQuadraticCostParams::MAX_POLY_DEGREE;
+    this->params_.degree = degree;
+    for (int j = 0; j <= degree; ++j) {
+      this->params_.left_wall_edge_coeffs[j] = left_wall_coeffs[j];
+      this->params_.right_wall_edge_coeffs[j] = right_wall_coeffs[j];
+    }
+    this->paramsToDevice();
   }
 
   void setInflationRadius(float in)
