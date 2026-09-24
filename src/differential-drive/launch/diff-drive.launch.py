@@ -26,7 +26,15 @@ def generate_launch_description():
             ]
     )
 
+    estop_node = Node(
+            package='bringup',
+            executable='ROS2_ESTOP.py',
+            name='lora_usb_reader_node',
+            output='screen'
+    )
+
     return LaunchDescription([
         config_file_arg,
-        diff_drive_node
+        diff_drive_node,
+        estop_node
     ])

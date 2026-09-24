@@ -9,7 +9,9 @@ install(
 )
 
 install(
-  PROGRAMS scripts/odometry_relay.py
+  PROGRAMS
+    scripts/odometry_relay.py
+    scripts/ROS2_ESTOP.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

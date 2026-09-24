@@ -41,6 +41,15 @@ double wrap_angle_to_pi(double angle) {
     return angle - M_PI;
 }
 
+// Wraps an angle (radians) into the [0, 2*pi) range.
+double wrap_angle_to_2pi(double angle) {
+    angle = fmod(angle, 2.0 * M_PI);
+    if (angle < 0.0) {
+        angle += 2.0 * M_PI;
+    }
+    return angle;
+}
+
 class DifferentialDrive : public rclcpp::Node
 {
 public:
@@ -290,7 +299,7 @@ private:
         double angular_dist = (right_wheel_moved - left_wheel_moved) / wheel_distance_;
         robot_pose.x += linear_dist * cos(robot_pose.theta + angular_dist / 2.0);
         robot_pose.y += linear_dist * sin(robot_pose.theta + angular_dist / 2.0);
-        robot_pose.theta = wrap_angle_to_pi(robot_pose.theta + angular_dist);
+        robot_pose.theta = wrap_angle_to_2pi(robot_pose.theta + angular_dist);
         const double half_theta = robot_pose.theta / 2.0;
         const double left_wheel_speed_meas = leftMotor->GetVelocity().GetValueAsDouble() * 2.0 * M_PI * gear_ratio_;
         const double right_wheel_speed_meas = rightMotor->GetVelocity().GetValueAsDouble() * 2.0 * M_PI * gear_ratio_;
