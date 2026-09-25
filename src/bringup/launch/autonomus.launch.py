@@ -56,7 +56,7 @@ def generate_launch_description():
 
     lidar_odom_topic_arg = DeclareLaunchArgument(
         'lidar_odom_topic',
-        default_value='/Odometry',
+        default_value='/odom',
         description='LiDAR odometry topic'
     )
 

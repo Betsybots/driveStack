@@ -72,6 +72,7 @@ public:
         velocity_k_i_ = this->declare_parameter<double>("velocity_k_i", 0.52);
         velocity_k_d_ = this->declare_parameter<double>("velocity_k_d", 0.01);
 	    velocity_k_s_ = this->declare_parameter<double>("velocity_k_s", 0.00);
+        velocity_k_a_ = this->declare_parameter<double>("velocity_k_a", 0.0);
         velocity_acceleration_ = this->declare_parameter<double>("velocity_acceleration", 0.2);
         max_linear_velocity_ = this->declare_parameter<double>("max_linear_velocity", 10.0);
         max_angular_velocity_ = this->declare_parameter<double>("max_angular_velocity", 20.0);
@@ -151,11 +152,22 @@ public:
         slot0Configs.kI = velocity_k_i_;
         slot0Configs.kD = velocity_k_d_;
 	    slot0Configs.kS = velocity_k_s_;
+        slot0Configs.kA = velocity_k_a_;
         fx_cfg.Slot0 = slot0Configs;
         
         leftMotor->GetConfigurator().Apply(slot0Configs, 50_ms);
         rightMotor->GetConfigurator().Apply(slot0Configs, 50_ms);
-        
+
+        // Read back the gains actually stored on each motor to confirm the Apply() calls took effect.
+        //configs::Slot0Configs left_slot0_readback{};
+        //configs::Slot0Configs right_slot0_readback{};
+        //leftMotor->GetConfigurator().Refresh(left_slot0_readback);
+        //rightMotor->GetConfigurator().Refresh(right_slot0_readback);
+
+        RCLCPP_INFO(this->get_logger(),
+            "Left Motor PIDSVA: P=%.4f I=%.4f D=%.4f S=%.4f V=%.4f A=%.4f",
+            velocity_k_p_, velocity_k_i_, velocity_k_d_,
+            velocity_k_s_, velocity_k_v_, velocity_k_a_);
         left_velocity.WithSlot(0).WithAcceleration(units::angular_acceleration::turns_per_second_squared_t{velocity_acceleration_});
         right_velocity.WithSlot(0).WithAcceleration(units::angular_acceleration::turns_per_second_squared_t{velocity_acceleration_});
 #endif
@@ -259,9 +271,9 @@ private:
     void setMotorSpeeds()
     {
 #if ENABLE_MOTORS
-        //if(new_cmd_received)
-        //{
-            RCLCPP_INFO(this->get_logger(), "Setting Motor Speeds: Left = %f, Right = %f", cmd_left_speed, cmd_right_speed);
+        if(new_cmd_received)
+        {
+            //RCLCPP_INFO(this->get_logger(), "Setting Motor Speeds: Left = %f, Right = %f", cmd_left_speed, cmd_right_speed);
             // Set Motor Speeds
             left_velocity.WithVelocity(units::angular_velocity::turns_per_second_t{cmd_left_speed});
             right_velocity.WithVelocity(units::angular_velocity::turns_per_second_t{cmd_right_speed});
@@ -269,11 +281,13 @@ private:
 	    //rightOut.WithOutput(0.1);
 	    //leftMotor->SetControl(leftOut);
 	    //rightMotor->SetControl(rightOut);
-	    leftMotor->SetControl(left_velocity);
+	        leftMotor->SetControl(left_velocity);
             rightMotor->SetControl(right_velocity);
-            //RCLCPP_INFO(this->get_logger(), "Setting Motor Speeds: Left = %f, Right = %f", leftMotor->GetV, cmd_right_speed);
+            //RCLCPP_INFO(this->get_logger(), "Actual Motor Speeds: Left = %f, Right = %f", leftMotor->GetVelocity().GetValueAsDouble(), rightMotor->GetVelocity().GetValueAsDouble());
+            RCLCPP_INFO(this->get_logger(), "Actual Motor Speeds:(%f, %f) actual = (%f, %f)", \
+            cmd_left_speed, cmd_right_speed, leftMotor->GetVelocity().GetValueAsDouble(), rightMotor->GetVelocity().GetValueAsDouble());
             new_cmd_received = false;
-        //}
+        }
 #endif
     }
 
@@ -382,6 +396,7 @@ private:
     double velocity_k_i_;
     double velocity_k_d_;
     double velocity_k_s_;
+    double velocity_k_a_;
     double velocity_acceleration_;
     double max_linear_velocity_;
     double max_angular_velocity_;

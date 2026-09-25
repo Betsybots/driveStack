@@ -36,5 +36,6 @@ def generate_launch_description():
     return LaunchDescription([
         config_file_arg,
         diff_drive_node,
-        estop_node
+        estop_node,
+        diff_drive_node
     ])

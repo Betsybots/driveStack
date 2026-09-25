@@ -14,11 +14,12 @@
     left_motor_inverted: true
     right_motor_inverted: true
 
-    velocity_k_v: 0.115 #0.0054
-    velocity_k_p: 0.15 #0.012
+    velocity_k_v: 0.1 #0.15 #0.115 #0.0054
+    velocity_k_p: 0.25 #0.012
     velocity_k_i: 0.0
-    velocity_k_d: 0.0
-    velocity_k_s: 0.39 #0.0185
+    velocity_k_d: 0.01
+    velocity_k_s: 0.38 #0.45 #0.39 #0.0185
+    velocity_k_a: 0.2
     velocity_acceleration: 0.2
 
     max_linear_velocity: 10.0
@@ -32,7 +33,7 @@
     wheel_odom_topic: "/wheel_odom"
     joint_states_topic: "/joint_states"
     odom_frame_id: "odom"
-    base_frame_id: "base_footprint"
+    base_frame_id: "base_link"
     left_joint_name: "drivewhl_l_joint"
     right_joint_name: "drivewhl_r_joint"
 

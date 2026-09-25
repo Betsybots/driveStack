@@ -1,0 +1,98 @@
+# ============================================================
+#  ROS 2 IMU Driver Config
+#  Only parameters consumed by the C++ node
+# ============================================================
+
+imu_node:
+  ros__parameters:
+
+    # ── CAN INTERFACE ──
+    can:
+      interface: "can1"
+      bitrate: 250000
+      protocol: "J1939"
+      source_address: 0x82
+
+      pgn:
+        accs: 61485
+        hr_angular_rate: 61482
+        slope_sensor: 61481
+
+      can_id:
+        accs: 0x08F02D82
+        hr_angular_rate: 0x0CF02A82
+        slope_sensor: 0x0CF02982
+
+    # ── ROS 2 PUBLISHER ──
+    ros:
+      frame_id: "imu_link"
+      topic_raw: "/imu/data_raw"
+      topic_filtered: "/imu/data"
+      # publish_rate_hz: 100.0
+      publish_rate_hz: 200.0
+      queue_size: 10
+      timestamp_offset_us: 0.0 
+      max_data_age_ms: 200.0
+
+    # ── CAN MESSAGE PARSING ──
+    parsing:
+      accs:
+        byte_order: "little_endian"
+        axis_order: ["Y", "X", "Z"]
+        bits_per_axis: 16
+        scale: 0.01
+        offset: -320.0
+
+      hr_angular_rate:
+        byte_order: "little_endian"
+        axis_order: ["Pitch", "Roll", "Yaw"]
+        # MISMATCH (kept for reference): can_id.hr_angular_rate (0x0CF02A82)
+        # decodes to PGN 61482, which per the MTLT335D manual is the
+        # STANDARD (16-bit, 1/128 °/s/bit) Angular Rate message, not the
+        # actual High-Resolution one (PGN 65387, 19-bit, 1/1024 °/s/bit).
+        # bits_per_axis: 19
+        # scale: 0.000976563
+        bits_per_axis: 16
+        scale: 0.0078125
+        offset: -250.0
+
+      slope_sensor:
+        byte_order: "little_endian"
+        # 24-bit per axis (SSI2, PGN 61481) — scale already correct (1/32768);
+        # offset was wrong, kept for reference:
+        # pitch_offset: -200.0
+        # roll_offset: -200.0
+        pitch_scale: 0.00003051758
+        pitch_offset: -250.0
+        roll_scale: 0.00003051758
+        roll_offset: -250.0
+
+    # ── NOISE (used in covariance + EKF tuning) ──
+    noise:
+      gyro_noise_density: 4.363e-05      # rad/s/√Hz (from 0.15 °/√hr ARW)
+      gyro_bias_instability: 6.302e-06   # rad/s
+      gyro_random_walk: 0.15             # °/√hr (ARW)
+      accel_noise_density: 3.333e-04     # m/s²/√Hz
+      accel_bias_instability: 1.962e-04  # m/s²
+      accel_random_walk: 0.02            # m/s/√hr (VRW)
+
+    # ── COVARIANCE (sensor_msgs/Imu — row-major 3x3) ──
+    #    σ² = (noise_density × √effective_bandwidth_hz)²
+    #    Set derive_from_noise=true to compute gyro/accel covariance from noise values above.
+    #    25 Hz matches the default output LPF setting in the MTLT335 user manual.
+    #    orientation[0] = -1.0 → unknown (REP-145)
+    covariance:
+      derive_from_noise: true
+      effective_bandwidth_hz: 25.0
+
+      orientation:           [-1.0,     0.0,      0.0,
+                               0.0,     0.0,      0.0,
+                               0.0,     0.0,      0.0]
+
+      angular_velocity:      [8.46e-08, 0.0,      0.0,
+                              0.0,      8.46e-08,  0.0,
+                              0.0,      0.0,       8.46e-08]
+
+      linear_acceleration:   [1.111e-05, 0.0,      0.0,
+                              0.0,       1.111e-05, 0.0,
+                              0.0,       0.0,       1.111e-05]
