@@ -13,7 +13,7 @@ def generate_launch_description():
 
     params_file = LaunchConfiguration('params_file')
 
-    return LaunchDescriptsrc/bringupion([
+    return LaunchDescription([
         DeclareLaunchArgument(
             'params_file',
             default_value=default_params,

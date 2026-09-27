@@ -2,7 +2,7 @@
   ros__parameters:
     canbus_name: "can0"
     # One motor drives a solid rear axle -- both wheels always spin at the same speed.
-    drive_motor_id: 1
+    drive_motor_id: 3
 
     # Ackermann geometry. min turning radius = wheelbase / tan(max_steer_angle) = 0.371 m
     wheelbase: 0.31115          # 12.25 in, front axle to rear axle
@@ -42,13 +42,13 @@
     pwm_chip: 0
     pwm_channel: 0
     pwm_period_ns: 20000000     # 50 Hz
-    servo_min_pulse_ns: 1000000   # full left lock  (-max_steer_angle)
+    servo_min_pulse_ns: 1250000   # full left lock  (-max_steer_angle)
     servo_center_pulse_ns: 1500000
-    servo_max_pulse_ns: 2000000   # full right lock (+max_steer_angle)
+    servo_max_pulse_ns: 1750000   # full right lock (+max_steer_angle)
     steering_inverted: false
     steering_slew_rate: 6.0     # rad/s, used to estimate actual angle for odometry
 
-    max_linear_velocity: 1.0
+    max_linear_velocity: 2.0
     max_angular_velocity: 2.0
     cmd_vel_timeout_ms: 1000
     update_period_ms: 10

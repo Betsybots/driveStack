@@ -54,7 +54,7 @@ public:
     {
         canbus_name_ = this->declare_parameter<std::string>("canbus_name", "can0");
         // One motor drives a solid rear axle -- both wheels always spin at the same speed.
-        drive_motor_id_ = this->declare_parameter<int>("drive_motor_id", 0);
+        drive_motor_id_ = this->declare_parameter<int>("drive_motor_id", 3);
 
         wheelbase_ = this->declare_parameter<double>("wheelbase", 0.31115);
         wheel_diameter_ = this->declare_parameter<double>("wheel_diameter", 0.13335);
@@ -243,6 +243,8 @@ private:
             cmd_steer_angle_ = std::atan(wheelbase_ * angular_z / linear_x);
         }
         cmd_steer_angle_ = std::clamp(cmd_steer_angle_, -max_steer_angle_, max_steer_angle_);
+        RCLCPP_INFO(this->get_logger(), "Received cmd_vel: linear_x=%.2f, angular_z=%.2f, cmd_steer_angle=%.2f",
+            linear_x, angular_z, cmd_steer_angle_);
 
         cmd_body_speed_ = linear_x;
         last_cmd_time_ = this->now();
@@ -285,7 +287,8 @@ private:
             static_cast<double>(servo_center_pulse_ns_) + normalized * span,
             static_cast<double>(servo_min_pulse_ns_),
             static_cast<double>(servo_max_pulse_ns_)));
-
+        RCLCPP_INFO(this->get_logger(),
+            "Setting steering pulse to %ld ns for command angle %.2f rad, direction %.2f, span %.2f", pulse_ns, cmd_steer_angle_, direction, span);
         try {
             steering_servo_->set_pulse_ns(pulse_ns);
         } catch (const std::exception & e) {
@@ -300,6 +303,8 @@ private:
         // Solid axle, single motor: no per-wheel speed split is possible.
         drive_velocity.WithVelocity(
             units::angular_velocity::turns_per_second_t{wheel_linear_to_motor_tps(cmd_body_speed_)});
+        RCLCPP_INFO(this->get_logger(),
+            "Setting drive motor velocity to %.2f turns per second", wheel_linear_to_motor_tps(cmd_body_speed_));
         driveMotor->SetControl(drive_velocity);
 #endif
     }

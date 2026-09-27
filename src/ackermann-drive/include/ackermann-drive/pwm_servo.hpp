@@ -31,9 +31,15 @@ public:
             }
         }
 
-        write_or_throw(path_ + "/enable", "0");
-        write_or_throw(path_ + "/duty_cycle", "0");
+        // Wait for udev to grant write access to the new files.
+        for (int i = 0; i < 200 && access((path_ + "/enable").c_str(), W_OK) != 0; ++i) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+        // Period first: the kernel rejects other writes while period is 0.
         write_or_throw(path_ + "/period", std::to_string(period_ns));
+        write_or_throw(path_ + "/duty_cycle", "0");
+        write_or_throw(path_ + "/enable", "0");
+       
         exported_ = true;
     }
 
@@ -45,7 +51,7 @@ public:
         try {
             write_or_throw(path_ + "/duty_cycle", "0");
             write_or_throw(path_ + "/enable", "0");
-            write_or_throw(base_ + "/unexport", std::to_string(channel_));
+            //write_or_throw(base_ + "/unexport", std::to_string(channel_));
         } catch (const std::exception &) {
             // Destructor must not throw; the channel is released on process exit anyway.
         }
