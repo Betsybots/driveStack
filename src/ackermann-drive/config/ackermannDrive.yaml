@@ -2,7 +2,7 @@
   ros__parameters:
     canbus_name: "can0"
     # One motor drives a solid rear axle -- both wheels always spin at the same speed.
-    drive_motor_id: 0
+    drive_motor_id: 1
 
     # Ackermann geometry. min turning radius = wheelbase / tan(max_steer_angle) = 0.371 m
     wheelbase: 0.31115          # 12.25 in, front axle to rear axle
