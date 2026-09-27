@@ -268,7 +268,10 @@ private:
 
     void apply_steering(double dt)
     {
-        // Open-loop servo: model the mechanical slew so odometry uses a realistic angle.
+        // Slew-limit the commanded angle so the servo ramps smoothly instead of
+        // snapping on a sudden stick/planner input. steer_angle_estimate_ is what
+        // actually drives the servo below, and it also doubles as the odometry angle,
+        // so odometry and the physical wheel never disagree about where it is.
         const double max_step = steering_slew_rate_ * dt;
         const double error = cmd_steer_angle_ - steer_angle_estimate_;
         steer_angle_estimate_ += std::clamp(error, -max_step, max_step);
@@ -278,7 +281,7 @@ private:
         }
 
         const double direction = steering_inverted_ ? -1.0 : 1.0;
-        const double normalized = direction * cmd_steer_angle_ / max_steer_angle_;
+        const double normalized = direction * steer_angle_estimate_ / max_steer_angle_;
         const double span = normalized >= 0.0
             ? static_cast<double>(servo_max_pulse_ns_ - servo_center_pulse_ns_)
             : static_cast<double>(servo_center_pulse_ns_ - servo_min_pulse_ns_);
