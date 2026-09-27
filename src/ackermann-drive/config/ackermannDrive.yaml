@@ -1,0 +1,75 @@
+/**:
+  ros__parameters:
+    canbus_name: "can0"
+    # One motor drives a solid rear axle -- both wheels always spin at the same speed.
+    drive_motor_id: 0
+
+    # Ackermann geometry. min turning radius = wheelbase / tan(max_steer_angle) = 0.371 m
+    wheelbase: 0.31115          # 12.25 in, front axle to rear axle
+    max_steer_angle: 0.6981317  # 40 deg at full lock
+    wheel_diameter: 0.13335     # 2.625 in radius
+    # wheel turns per motor turn; 0.5 = 2:1 reduction (larger gear on the wheel shaft)
+    gear_ratio: 0.5
+    # Set to the rear-axle -> base_link distance if base_link is not at the rear axle.
+    base_link_offset_from_rear_axle: 0.0
+
+    stator_current_limit: 40.0
+    supply_current_limit: 20.0
+    neutral_mode: "coast"
+    # Matches the diff-drive setup's convention (both its motors were inverted: true).
+    drive_motor_inverted: true
+
+    # Gains carried over from differential-drive's diffDrive.yaml as a starting point.
+    # CAUTION: this motor is now 24V, diffDrive.yaml's values were tuned on a 12V motor --
+    # kV in particular is the motor's back-EMF constant and is very unlikely to transfer
+    # correctly. Re-tune all five on the bench before trusting them.
+    velocity_k_v: 0.1
+    velocity_k_p: 0.25
+    velocity_k_i: 0.0
+    velocity_k_d: 0.01
+    velocity_k_s: 0.38
+    velocity_k_a: 0.2
+    velocity_acceleration: 0.2
+
+    # Steering servo via the Raspberry Pi 4 sysfs PWM interface.
+    # pwm_chip 0 / pwm_channel 0 = pwmchip0/pwm0. On stock Raspberry Pi OS this is
+    # GPIO18 (physical pin 12), and only appears after adding an overlay to
+    # /boot/firmware/config.txt (Bookworm) or /boot/config.txt (Bullseye) and rebooting:
+    #   dtoverlay=pwm            # exports pwmchip0/pwm0 on GPIO18 (pin 12)
+    #   dtoverlay=pwm-2chan      # also exports pwm1 on GPIO19 (pin 35)
+    # Verify with: ls /sys/class/pwm/pwmchip0   (must exist before this node starts)
+    pwm_enabled: true
+    pwm_chip: 0
+    pwm_channel: 0
+    pwm_period_ns: 20000000     # 50 Hz
+    servo_min_pulse_ns: 1000000   # full left lock  (-max_steer_angle)
+    servo_center_pulse_ns: 1500000
+    servo_max_pulse_ns: 2000000   # full right lock (+max_steer_angle)
+    steering_inverted: false
+    steering_slew_rate: 6.0     # rad/s, used to estimate actual angle for odometry
+
+    max_linear_velocity: 1.0
+    max_angular_velocity: 2.0
+    cmd_vel_timeout_ms: 1000
+    update_period_ms: 10
+
+    # Downstream of the velocity smoother so acceleration limits actually reach the motors.
+    cmd_vel_topic: "/cmd_vel_smoothed"
+    motor_speeds_topic: "/ackermann_drive/motor_speeds"
+    wheel_odom_topic: "/wheel_odom"
+    joint_states_topic: "/joint_states"
+    odom_frame_id: "odom"
+    # FAST-LIO2 owns the odom->base_footprint TF; this node only stamps /wheel_odom to match.
+    base_frame_id: "base_footprint"
+    left_joint_name: "drivewhl_l_joint"
+    right_joint_name: "drivewhl_r_joint"
+    steering_joint_name: "steering_joint"
+
+    pose_covariance_xy: 0.001
+    pose_covariance_z_roll_pitch: 0.000001
+    # Yaw is derived from an open-loop servo command, so it is far less trustworthy
+    # than on the diff-drive base. Kept high so the EKF leans on the IMU for heading.
+    pose_covariance_yaw: 0.05
+    twist_covariance_vx: 0.001
+    twist_covariance_vy_vz_roll_pitch: 0.000001
+    twist_covariance_yaw_rate: 0.25

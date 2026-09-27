@@ -33,6 +33,10 @@
     wheel_odom_topic: "/wheel_odom"
     joint_states_topic: "/joint_states"
     odom_frame_id: "odom"
+    # Must match the EKF's base_link_frame (diy_localization ekf_fusion.yaml)
+    # and exist in the URDF. base_footprint is commented out of
+    # robot.urdf.xacro, so the EKF would silently drop every /wheel_odom
+    # message stamped with it.
     base_frame_id: "base_link"
     left_joint_name: "drivewhl_l_joint"
     right_joint_name: "drivewhl_r_joint"

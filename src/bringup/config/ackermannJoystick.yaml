@@ -20,6 +20,19 @@
 #            1 = B       5 = RB    9 = Left stick click (L3)
 #            2 = X       6 = Back  10 = Right stick click (R3)
 #            3 = Y       7 = Start
+#
+# angular.z here is still a yaw RATE (rad/s), same as diff-drive -- the
+# ackermann-drive node is the one that converts it to a steering angle via
+# delta = atan(wheelbase * wz / vx). That conversion means the same wz maps
+# to a SMALLER steering angle as vx increases, so scale_angular.yaw below is
+# chosen to reach full steering lock (+-40 deg, ackermannDrive.yaml
+# max_steer_angle) at a slow maneuvering speed (~0.3 m/s) rather than at the
+# 1.0 m/s hard cap -- full stick at cruising speed would otherwise barely
+# turn the wheels. Retune scale_angular.yaw = vx_ref * tan(max_steer_angle)
+# / wheelbase if vx_ref changes.
+# Also note: below ~0.02 m/s (node's MIN_SPEED_FOR_STEERING_SOLVE) the
+# steering angle freezes at its last value -- turning the stick while
+# stopped does nothing, by design of the bicycle model.
 
 teleop_twist_joy_node:
   ros__parameters:
@@ -30,12 +43,12 @@ teleop_twist_joy_node:
       x: 1.0
     scale_linear_turbo:
       x: 1.0
- 
+
     # Right stick horizontal -> turn left/right
     axis_angular:
       yaw: 3
     scale_angular:
-      yaw: 2.0
+      yaw: 0.8
     scale_angular_turbo:
       yaw: 2.0
 
@@ -43,4 +56,3 @@ teleop_twist_joy_node:
     require_enable_button: true
     enable_button: 5          # RB
     enable_turbo_button: 4    # LB
-
