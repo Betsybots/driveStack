@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>ackermann_hardware</name>
+  <version>0.1.0</version>
+  <description>ros2_control hardware interface for the Ackermann base: Kraken X60 rear drive via Phoenix 6 and a PWM steering servo on GPIO18.</description>
+  <maintainer email="betsy@todo.todo">betsy</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>hardware_interface</depend>
+  <depend>pluginlib</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <!-- Optional at build time: without it the plugin only runs with use_mock_hardware. -->
+  <depend>phoenix6</depend>
+
+  <exec_depend>bicycle_steering_controller</exec_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>joy</exec_depend>
+  <exec_depend>joint_state_broadcaster</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>teleop_twist_joy</exec_depend>
+  <exec_depend>xacro</exec_depend>
+
+  <test_depend>ament_cmake_gtest</test_depend>
+  <test_depend>lifecycle_msgs</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

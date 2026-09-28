@@ -17,7 +17,7 @@
     supply_current_limit: 20.0
     neutral_mode: "coast"
     # Matches the diff-drive setup's convention (both its motors were inverted: true).
-    drive_motor_inverted: true
+    drive_motor_inverted: false
 
     # Gains carried over from differential-drive's diffDrive.yaml as a starting point.
     # CAUTION: this motor is now 24V, diffDrive.yaml's values were tuned on a 12V motor --
@@ -45,10 +45,10 @@
     servo_min_pulse_ns: 1250000   # full left lock  (-max_steer_angle)
     servo_center_pulse_ns: 1500000
     servo_max_pulse_ns: 1750000   # full right lock (+max_steer_angle)
-    steering_inverted: false
+    steering_inverted: true
     steering_slew_rate: 6.0     # rad/s, used to estimate actual angle for odometry
 
-    max_linear_velocity: 2.0
+    max_linear_velocity: 10.0
     max_angular_velocity: 2.0
     cmd_vel_timeout_ms: 1000
     update_period_ms: 10

@@ -10,7 +10,7 @@ class LoRaUSBReaderNode(Node):
         super().__init__('lora_usb_reader_node')
         
         # Parameters for port and baud rate
-        self.declare_parameter('serial_port', '/dev/ttyUSB1')
+        self.declare_parameter('serial_port', '/dev/ttyUSB0')
         self.declare_parameter('baud_rate', 115200)
         
         port = self.get_parameter('serial_port').value

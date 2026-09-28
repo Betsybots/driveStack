@@ -16,6 +16,7 @@
 #include "geometry_msgs/msg/twist.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
+#include "std_msgs/msg/string.hpp"
 
 #include "ackermann-drive/pwm_servo.hpp"
 
@@ -92,6 +93,7 @@ public:
         update_period_ms_ = this->declare_parameter<int>("update_period_ms", 10);
 
         cmd_vel_topic_ = this->declare_parameter<std::string>("cmd_vel_topic", "/cmd_vel_smoothed");
+        estop_topic_ = this->declare_parameter<std::string>("estop_topic", "/lora/received_message");
         motor_speeds_topic_ =
             this->declare_parameter<std::string>("motor_speeds_topic", "/ackermann_drive/motor_speeds");
         wheel_odom_topic_ = this->declare_parameter<std::string>("wheel_odom_topic", "/wheel_odom");
@@ -196,6 +198,8 @@ public:
 
         cmd_vel_subscription_ = this->create_subscription<geometry_msgs::msg::Twist>(
             cmd_vel_topic_, 5, std::bind(&AckermannDrive::cmd_vel_callback, this, std::placeholders::_1));
+        estop_subscription_ = this->create_subscription<std_msgs::msg::String>(
+            estop_topic_, 5, std::bind(&AckermannDrive::estop_callback, this, std::placeholders::_1));
 
         motor_speed_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>(motor_speeds_topic_, 10);
         motor_odom_publisher_ = this->create_publisher<nav_msgs::msg::Odometry>(wheel_odom_topic_, 20);
@@ -251,6 +255,24 @@ private:
         cmd_vel_timeout_triggered_ = false;
     }
 
+    void estop_callback(std_msgs::msg::String::SharedPtr msg)
+    {
+        RCLCPP_INFO(this->get_logger(), "Received estop message: %s", msg->data.c_str());
+        if (msg->data.find("OPEN") != std::string::npos) {
+            // Handle estop open
+            estop_triggered_ = true;
+        }
+        else if (msg->data.find("SHORTED") != std::string::npos) {
+            // Handle estop closed
+            estop_triggered_ = false;
+        }
+        else {
+            // Handle unknown estop message
+            estop_triggered_ = false;
+        }
+
+    }
+
     void check_cmd_vel_watchdog()
     {
         const auto elapsed = this->now() - last_cmd_time_;
@@ -272,6 +294,9 @@ private:
         // snapping on a sudden stick/planner input. steer_angle_estimate_ is what
         // actually drives the servo below, and it also doubles as the odometry angle,
         // so odometry and the physical wheel never disagree about where it is.
+        if (estop_triggered_) {
+            cmd_steer_angle_ = 0.0;
+        }
         const double max_step = steering_slew_rate_ * dt;
         const double error = cmd_steer_angle_ - steer_angle_estimate_;
         steer_angle_estimate_ += std::clamp(error, -max_step, max_step);
@@ -302,6 +327,10 @@ private:
 
     void set_motor_speeds()
     {
+        if (estop_triggered_) {
+            RCLCPP_WARN(this->get_logger(), "Estop triggered, not setting motor speeds");
+            cmd_body_speed_ = 0.0;
+        }
 #if ENABLE_MOTORS
         // Solid axle, single motor: no per-wheel speed split is possible.
         drive_velocity.WithVelocity(
@@ -398,6 +427,7 @@ private:
 
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_subscription_;
+    rclcpp::Subscription<std_msgs::msg::String>::SharedPtr estop_subscription_;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr motor_speed_publisher_;
     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr motor_odom_publisher_;
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr motor_pos_publisher_;
@@ -437,6 +467,7 @@ private:
     int cmd_vel_timeout_ms_;
     int update_period_ms_;
     std::string cmd_vel_topic_;
+    std::string estop_topic_;
     std::string motor_speeds_topic_;
     std::string wheel_odom_topic_;
     std::string joint_states_topic_;

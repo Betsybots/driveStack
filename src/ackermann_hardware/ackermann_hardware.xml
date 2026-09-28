@@ -1,0 +1,10 @@
+<library path="ackermann_hardware">
+  <class name="ackermann_hardware/AckermannSystem"
+         type="ackermann_hardware::AckermannSystem"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      ros2_control system for a rear-drive, front-steer Ackermann base: a Kraken X60 (TalonFX,
+      Phoenix 6) on the rear axle and a PWM steering servo on the Raspberry Pi.
+    </description>
+  </class>
+</library>

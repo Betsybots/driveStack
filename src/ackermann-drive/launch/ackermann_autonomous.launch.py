@@ -19,6 +19,12 @@ def generate_launch_description():
             default_value=default_params,
             description='Full path to the ackermann drive parameter file'),
         Node(
+            package='bringup',
+            executable='ROS2_ESTOP.py',
+            name='lora_usb_reader_node',
+            output='screen'
+        ),
+        Node(
             package='ackermann-drive',
             executable='ackermann-drive',
             name='ackermann_drive',

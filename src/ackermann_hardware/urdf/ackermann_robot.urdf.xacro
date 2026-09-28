@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<!--
+  Minimal kinematic description of the Ackermann base, enough for ros2_control,
+  robot_state_publisher and the bicycle_steering_controller. Measure wheelbase
+  and wheel_radius on the robot and keep them in sync with
+  config/ackermann_controllers.yaml. Replace with the full robot description
+  once it lives in this repository.
+-->
+<robot name="ackermann_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="use_mock_hardware" default="false"/>
+
+  <xacro:property name="wheelbase" value="0.31115"/>
+  <xacro:property name="wheel_radius" value="0.066675"/>
+  <xacro:property name="max_steer_angle" value="0.6981317"/>
+
+  <link name="base_footprint"/>
+
+  <!-- base_link sits on the rear axle, which is where the bicycle model puts the robot origin. -->
+  <link name="base_link"/>
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0"/>
+  </joint>
+
+  <link name="rear_wheel">
+    <visual>
+      <origin rpy="${pi/2} 0 0"/>
+      <geometry><cylinder radius="${wheel_radius}" length="0.04"/></geometry>
+    </visual>
+  </link>
+  <joint name="rear_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="rear_wheel"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <link name="steering_link"/>
+  <joint name="steering_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="steering_link"/>
+    <origin xyz="${wheelbase} 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-${max_steer_angle}" upper="${max_steer_angle}" effort="10.0" velocity="6.0"/>
+  </joint>
+
+  <link name="front_wheel">
+    <visual>
+      <origin rpy="${pi/2} 0 0"/>
+      <geometry><cylinder radius="${wheel_radius}" length="0.04"/></geometry>
+    </visual>
+  </link>
+  <joint name="front_wheel_joint" type="fixed">
+    <parent link="steering_link"/>
+    <child link="front_wheel"/>
+  </joint>
+
+  <xacro:include filename="$(find ackermann_hardware)/urdf/ackermann.ros2_control.xacro"/>
+  <xacro:ackermann_ros2_control name="AckermannBase"
+                                use_mock_hardware="$(arg use_mock_hardware)"
+                                max_steer_angle="${max_steer_angle}"/>
+</robot>
